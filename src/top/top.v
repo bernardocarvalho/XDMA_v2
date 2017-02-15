@@ -51,4 +51,16 @@ assign ddr3_sdram_ras_n = 1'h1;
 assign ddr3_sdram_reset_n = 1'h1;
 assign ddr3_sdram_we_n = 1'h1;
 
+DMA_core DMA_1 (
+    .reset_rtl(sys_rst_n),
+    .DIFF_REFCLK_clk_p(sys_clk_clk_p),
+    .DIFF_REFCLK_clk_n(sys_clk_clk_n),
+    .pcie_7x_mgt_rxn(pcie_7x_mgt_rxn),
+    .pcie_7x_mgt_rxp(pcie_7x_mgt_rxp),
+    .pcie_7x_mgt_txn(pcie_7x_mgt_txn),
+    .pcie_7x_mgt_txp(pcie_7x_mgt_txp)
+    
+);
+
+endmodule
 
