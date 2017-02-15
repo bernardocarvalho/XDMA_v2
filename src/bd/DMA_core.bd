@@ -221,6 +221,7 @@
         <spirit:componentRef spirit:library="ip" spirit:name="util_ds_buf" spirit:vendor="xilinx.com" spirit:version="2.1"/>
         <spirit:configurableElementValues>
           <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_util_ds_buf_0_2</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="C_BUF_TYPE">IBUFDSGTE</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
     </spirit:componentInstances>
@@ -296,17 +297,17 @@
         <spirit:internalPortReference spirit:componentRef="axi_fifo_mm_s_0" spirit:portRef="s_axi_aclk"/>
         <spirit:internalPortReference spirit:componentRef="axi_gpio_0" spirit:portRef="s_axi_aclk"/>
         <spirit:internalPortReference spirit:componentRef="axi_gpio_1" spirit:portRef="s_axi_aclk"/>
+        <spirit:internalPortReference spirit:componentRef="axis_data_fifo_0" spirit:portRef="s_axis_aclk"/>
+        <spirit:internalPortReference spirit:componentRef="axis_dwidth_converter_0" spirit:portRef="aclk"/>
+        <spirit:internalPortReference spirit:componentRef="rst_axi_pcie_0_62M" spirit:portRef="slowest_sync_clk"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="ACLK"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="S00_ACLK"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M00_ACLK"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M02_ACLK"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M03_ACLK"/>
-        <spirit:internalPortReference spirit:componentRef="axis_data_fifo_0" spirit:portRef="s_axis_aclk"/>
-        <spirit:internalPortReference spirit:componentRef="axis_dwidth_converter_0" spirit:portRef="aclk"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="ACLK"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="S00_AXIS_ACLK"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="M00_AXIS_ACLK"/>
-        <spirit:internalPortReference spirit:componentRef="rst_axi_pcie_0_62M" spirit:portRef="slowest_sync_clk"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>rst_axi_pcie_0_62M_peripheral_aresetn</spirit:name>
@@ -317,12 +318,12 @@
         <spirit:internalPortReference spirit:componentRef="axi_fifo_mm_s_0" spirit:portRef="s_axi_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_gpio_0" spirit:portRef="s_axi_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_gpio_1" spirit:portRef="s_axi_aresetn"/>
+        <spirit:internalPortReference spirit:componentRef="axis_data_fifo_0" spirit:portRef="s_axis_aresetn"/>
+        <spirit:internalPortReference spirit:componentRef="axis_dwidth_converter_0" spirit:portRef="aresetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="S00_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M00_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M02_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M03_ARESETN"/>
-        <spirit:internalPortReference spirit:componentRef="axis_data_fifo_0" spirit:portRef="s_axis_aresetn"/>
-        <spirit:internalPortReference spirit:componentRef="axis_dwidth_converter_0" spirit:portRef="aresetn"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="S00_AXIS_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="M00_AXIS_ARESETN"/>
       </spirit:adHocConnection>

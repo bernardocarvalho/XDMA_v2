@@ -1,19 +1,20 @@
 # Author: Andrzej Wojenski
+# Modifications: Wojciech Zabolotny
 
 create_clock -period 10.000 -name {sys_clk_clk_p[0]} -waveform {0.000 5.000} [get_ports {sys_clk_clk_p[0]}]
 
 # Bank 116
-set_property LOC GTPE2_CHANNEL_X1Y4 [get_cells {universal_top_*i/universal_top_*i/axi_pcie_0/inst/comp_axi_enhanced_pcie/comp_enhanced_core_top_wrap/axi_pcie_enhanced_core_top_i/pcie_7x_v2_0_2_inst/pcie_top_with_gt_top.gt_ges.gt_top_i/pipe_wrapper_i/pipe_lane[0].gt_wrapper_i/gtp_channel.gtpe2_channel_i}]
+set_property LOC GTPE2_CHANNEL_X1Y4 [get_cells {DMA_1/axi_pcie_0/inst/comp_axi_enhanced_pcie/comp_enhanced_core_top_wrap/axi_pcie_enhanced_core_top_i/pcie_7x_v2_0_2_inst/pcie_top_with_gt_top.gt_ges.gt_top_i/pipe_wrapper_i/pipe_lane[0].gt_wrapper_i/gtp_channel.gtpe2_channel_i}]
 set_property PACKAGE_PIN E13 [get_ports {pcie_7x_mgt_rxn[0]}]
-set_property LOC GTPE2_CHANNEL_X1Y5 [get_cells {universal_top_*i/universal_top_*i/axi_pcie_0/inst/comp_axi_enhanced_pcie/comp_enhanced_core_top_wrap/axi_pcie_enhanced_core_top_i/pcie_7x_v2_0_2_inst/pcie_top_with_gt_top.gt_ges.gt_top_i/pipe_wrapper_i/pipe_lane[1].gt_wrapper_i/gtp_channel.gtpe2_channel_i}]
+set_property LOC GTPE2_CHANNEL_X1Y5 [get_cells {DMA_1/axi_pcie_0/inst/comp_axi_enhanced_pcie/comp_enhanced_core_top_wrap/axi_pcie_enhanced_core_top_i/pcie_7x_v2_0_2_inst/pcie_top_with_gt_top.gt_ges.gt_top_i/pipe_wrapper_i/pipe_lane[1].gt_wrapper_i/gtp_channel.gtpe2_channel_i}]
 set_property PACKAGE_PIN E15 [get_ports {pcie_7x_mgt_rxn[1]}]
-set_property LOC GTPE2_CHANNEL_X1Y6 [get_cells {universal_top_*i/universal_top_*i/axi_pcie_0/inst/comp_axi_enhanced_pcie/comp_enhanced_core_top_wrap/axi_pcie_enhanced_core_top_i/pcie_7x_v2_0_2_inst/pcie_top_with_gt_top.gt_ges.gt_top_i/pipe_wrapper_i/pipe_lane[2].gt_wrapper_i/gtp_channel.gtpe2_channel_i}]
+set_property LOC GTPE2_CHANNEL_X1Y6 [get_cells {DMA_1/axi_pcie_0/inst/comp_axi_enhanced_pcie/comp_enhanced_core_top_wrap/axi_pcie_enhanced_core_top_i/pcie_7x_v2_0_2_inst/pcie_top_with_gt_top.gt_ges.gt_top_i/pipe_wrapper_i/pipe_lane[2].gt_wrapper_i/gtp_channel.gtpe2_channel_i}]
 set_property PACKAGE_PIN C16 [get_ports {pcie_7x_mgt_rxn[2]}]
-set_property LOC GTPE2_CHANNEL_X1Y7 [get_cells {universal_top_*i/universal_top_*i/axi_pcie_0/inst/comp_axi_enhanced_pcie/comp_enhanced_core_top_wrap/axi_pcie_enhanced_core_top_i/pcie_7x_v2_0_2_inst/pcie_top_with_gt_top.gt_ges.gt_top_i/pipe_wrapper_i/pipe_lane[3].gt_wrapper_i/gtp_channel.gtpe2_channel_i}]
+set_property LOC GTPE2_CHANNEL_X1Y7 [get_cells {DMA_1/axi_pcie_0/inst/comp_axi_enhanced_pcie/comp_enhanced_core_top_wrap/axi_pcie_enhanced_core_top_i/pcie_7x_v2_0_2_inst/pcie_top_with_gt_top.gt_ges.gt_top_i/pipe_wrapper_i/pipe_lane[3].gt_wrapper_i/gtp_channel.gtpe2_channel_i}]
 set_property PACKAGE_PIN E17 [get_ports {pcie_7x_mgt_rxn[3]}]
 
 set_property PACKAGE_PIN H16 [get_ports {sys_clk_clk_p[0]}]
-set_property LOC GTPE2_COMMON_X1Y1 [get_cells {universal_top_*i/universal_top_*i/axi_pcie_0/inst/comp_axi_enhanced_pcie/comp_enhanced_core_top_wrap/axi_pcie_enhanced_core_top_i/pcie_7x_v2_0_2_inst/pcie_top_with_gt_top.gt_ges.gt_top_i/pipe_wrapper_i/pipe_lane[0].pipe_quad.gt_common_enabled.gt_common_int.gt_common_i/qpll_wrapper_i/gtp_common.gtpe2_common_i}]
+set_property LOC GTPE2_COMMON_X1Y1 [get_cells {DMA_1/axi_pcie_0/inst/comp_axi_enhanced_pcie/comp_enhanced_core_top_wrap/axi_pcie_enhanced_core_top_i/pcie_7x_v2_0_2_inst/pcie_top_with_gt_top.gt_ges.gt_top_i/pipe_wrapper_i/pipe_lane[0].pipe_quad.gt_common_enabled.gt_common_int.gt_common_i/qpll_wrapper_i/gtp_common.gtpe2_common_i}]
 
 set_property PACKAGE_PIN AB1 [get_ports sys_rst_n]
 set_property PULLUP true [get_ports sys_rst_n]
