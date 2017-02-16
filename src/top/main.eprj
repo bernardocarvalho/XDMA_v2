@@ -1,2 +1,3 @@
 verilog top.v
 xdc top.xdc
+xdc ddr_fake.xdc
