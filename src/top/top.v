@@ -15,7 +15,7 @@ module test_board # (
           inout [31:0]ddr3_dq,
           inout [3:0]ddr3_dqs_n,
           inout [3:0]ddr3_dqs_p,
-          output [0:0]ddr3m_odt,
+          output [0:0]ddr3_odt,
           output ddr3_ras_n,
           output ddr3_reset_n,
           output ddr3_we_n,
