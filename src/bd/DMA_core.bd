@@ -136,9 +136,9 @@
         <spirit:configurableElementValues>
           <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_axi_pcie_0_0</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="NO_OF_LANES">X4</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="MAX_LINK_SPEED">5.0_GT/s</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="MAX_LINK_SPEED">2.5_GT/s</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="VENDOR_ID">0x32ab</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="DEVICE_ID">0x7022</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="DEVICE_ID">0x7014</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="SUBSYSTEM_VENDOR_ID">0x32ab</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="BAR1_ENABLED">true</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="BAR1_TYPE">Memory</spirit:configurableElementValue>
@@ -150,6 +150,7 @@
           <spirit:configurableElementValue spirit:referenceId="S_AXI_DATA_WIDTH">128</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="M_AXI_DATA_WIDTH">128</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="BAR_64BIT">false</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="shared_logic_in_core">true</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
       <spirit:componentInstance>
@@ -334,6 +335,7 @@
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M03_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="S00_AXIS_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="M00_AXIS_ARESETN"/>
+        <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M01_ARESETN"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>rst_axi_pcie_0_62M_interconnect_aresetn</spirit:name>
@@ -351,6 +353,7 @@
         <spirit:externalPortReference spirit:portRef="reset_rtl"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0" spirit:portRef="axi_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="rst_axi_pcie_0_62M" spirit:portRef="ext_reset_in"/>
+        <spirit:internalPortReference spirit:componentRef="rst_axi_pcie_0_62M" spirit:portRef="aux_reset_in"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>xlconstant_0_dout</spirit:name>
@@ -368,24 +371,24 @@
         <spirit:internalPortReference spirit:componentRef="axi_gpio_0" spirit:portRef="gpio2_io_i"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
-        <spirit:name>M01_ARESETN_1</spirit:name>
-        <spirit:internalPortReference spirit:componentRef="axi_pcie_0" spirit:portRef="mmcm_lock"/>
-        <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M01_ARESETN"/>
-      </spirit:adHocConnection>
-      <spirit:adHocConnection>
         <spirit:name>axi_gpio_1_gpio_io_o</spirit:name>
         <spirit:internalPortReference spirit:componentRef="axi_gpio_1" spirit:portRef="gpio_io_o"/>
         <spirit:internalPortReference spirit:componentRef="axi4s_src3_0" spirit:portRef="start"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
-        <spirit:name>M01_ACLK_1</spirit:name>
-        <spirit:internalPortReference spirit:componentRef="axi_pcie_0" spirit:portRef="axi_ctl_aclk_out"/>
-        <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M01_ACLK"/>
-      </spirit:adHocConnection>
-      <spirit:adHocConnection>
         <spirit:name>util_ds_buf_0_IBUF_OUT</spirit:name>
         <spirit:internalPortReference spirit:componentRef="util_ds_buf_0" spirit:portRef="IBUF_OUT"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0" spirit:portRef="REFCLK"/>
+      </spirit:adHocConnection>
+      <spirit:adHocConnection>
+        <spirit:name>axi_pcie_0_mmcm_lock</spirit:name>
+        <spirit:internalPortReference spirit:componentRef="axi_pcie_0" spirit:portRef="mmcm_lock"/>
+        <spirit:internalPortReference spirit:componentRef="rst_axi_pcie_0_62M" spirit:portRef="dcm_locked"/>
+      </spirit:adHocConnection>
+      <spirit:adHocConnection>
+        <spirit:name>axi_pcie_0_axi_ctl_aclk_out</spirit:name>
+        <spirit:internalPortReference spirit:componentRef="axi_pcie_0" spirit:portRef="axi_ctl_aclk_out"/>
+        <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M01_ACLK"/>
       </spirit:adHocConnection>
     </spirit:adHocConnections>
     <spirit:hierConnections>
