@@ -30,8 +30,8 @@ entity axi4s_src3 is
 
   port (
     -- AXI4 Stream interface
-    tdata  : out std_logic_vector(1023 downto 0);
-    tkeep  : out std_logic_vector(3 downto 0);
+    tdata  : out std_logic_vector(255 downto 0);
+    tkeep  : out std_logic_vector(31 downto 0);
     tlast  : out std_logic;
     tready : in  std_logic;
     tvalid : out std_logic;
@@ -49,7 +49,7 @@ architecture rtl of axi4s_src3 is
   type T_SRC_STATE is (ST_IDLE, ST_START_HEAD, ST_START_PKT, ST_SEND_PKT);
   signal src_state : T_SRC_STATE           := ST_IDLE;
   signal pkt_step  : integer               := 0;
-  signal s_data    : unsigned(1023 downto 0) := (others => '0');
+  signal s_data    : unsigned(255 downto 0) := (others => '0');
   signal old_start : std_logic             := '0';
   signal wrd_count : integer               := 0;
   signal pkt_len   : integer               := 0;
@@ -143,7 +143,7 @@ begin  -- architecture rtl
           when ST_START_PKT =>
             if tready = '1' then
               wrd_count <= 2;
-              s_data    <= to_unsigned(init_data, 1024);
+              s_data    <= to_unsigned(init_data, 256);
               src_state <= ST_SEND_PKT;
             end if;
           when ST_SEND_PKT =>
@@ -156,7 +156,7 @@ begin  -- architecture rtl
                 end if;
               else
                 wrd_count <= 0;
-                s_data    <= to_unsigned(0, 1024);
+                s_data    <= to_unsigned(0, 256);
                 tvalid    <= '0';
                 tlast     <= '0';
                 src_state <= ST_IDLE;

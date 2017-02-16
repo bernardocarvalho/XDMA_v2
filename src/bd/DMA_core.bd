@@ -92,17 +92,6 @@
     <spirit:version>1.00.a</spirit:version>
     <spirit:componentInstances>
       <spirit:componentInstance>
-        <spirit:instanceName>axi4s_src3_0</spirit:instanceName>
-        <spirit:componentRef spirit:library="module_ref" spirit:name="axi4s_src3" spirit:vendor="user.org" spirit:version="1.0"/>
-        <spirit:configurableElementValues>
-          <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_axi4s_src3_0_0</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="bd:referenceName">axi4s_src3</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="bd:subInstancePath"></spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="bd:referenceType">hdl</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="bd:BoundaryCRC">0x0</spirit:configurableElementValue>
-        </spirit:configurableElementValues>
-      </spirit:componentInstance>
-      <spirit:componentInstance>
         <spirit:instanceName>axi_datamover_0</spirit:instanceName>
         <spirit:componentRef spirit:library="ip" spirit:name="axi_datamover" spirit:vendor="xilinx.com" spirit:version="5.1"/>
         <spirit:configurableElementValues>
@@ -178,7 +167,7 @@
         <spirit:componentRef spirit:library="ip" spirit:name="axis_dwidth_converter" spirit:vendor="xilinx.com" spirit:version="1.1"/>
         <spirit:configurableElementValues>
           <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_axis_dwidth_converter_0_0</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="S_TDATA_NUM_BYTES">128</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="S_TDATA_NUM_BYTES">32</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="M_TDATA_NUM_BYTES">16</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
@@ -222,6 +211,17 @@
         <spirit:configurableElementValues>
           <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_util_ds_buf_0_2</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="C_BUF_TYPE">IBUFDSGTE</spirit:configurableElementValue>
+        </spirit:configurableElementValues>
+      </spirit:componentInstance>
+      <spirit:componentInstance>
+        <spirit:instanceName>axi4s_src3_0</spirit:instanceName>
+        <spirit:componentRef spirit:library="module_ref" spirit:name="axi4s_src3" spirit:vendor="user.org" spirit:version="1.0"/>
+        <spirit:configurableElementValues>
+          <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_axi4s_src3_0_0</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="bd:referenceName">axi4s_src3</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="bd:subInstancePath"></spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="bd:referenceType">hdl</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="bd:BoundaryCRC">0x0</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
     </spirit:componentInstances>
@@ -291,7 +291,6 @@
       <spirit:adHocConnection>
         <spirit:name>axi_pcie_0_axi_aclk_out</spirit:name>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0" spirit:portRef="axi_aclk_out"/>
-        <spirit:internalPortReference spirit:componentRef="axi4s_src3_0" spirit:portRef="clk"/>
         <spirit:internalPortReference spirit:componentRef="axi_datamover_0" spirit:portRef="m_axi_s2mm_aclk"/>
         <spirit:internalPortReference spirit:componentRef="axi_datamover_0" spirit:portRef="m_axis_s2mm_cmdsts_awclk"/>
         <spirit:internalPortReference spirit:componentRef="axi_fifo_mm_s_0" spirit:portRef="s_axi_aclk"/>
@@ -308,11 +307,11 @@
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="ACLK"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="S00_AXIS_ACLK"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="M00_AXIS_ACLK"/>
+        <spirit:internalPortReference spirit:componentRef="axi4s_src3_0" spirit:portRef="clk"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>rst_axi_pcie_0_62M_peripheral_aresetn</spirit:name>
         <spirit:internalPortReference spirit:componentRef="rst_axi_pcie_0_62M" spirit:portRef="peripheral_aresetn"/>
-        <spirit:internalPortReference spirit:componentRef="axi4s_src3_0" spirit:portRef="resetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_datamover_0" spirit:portRef="m_axi_s2mm_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_datamover_0" spirit:portRef="m_axis_s2mm_cmdsts_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_fifo_mm_s_0" spirit:portRef="s_axi_aresetn"/>
@@ -326,6 +325,7 @@
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M03_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="S00_AXIS_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="M00_AXIS_ARESETN"/>
+        <spirit:internalPortReference spirit:componentRef="axi4s_src3_0" spirit:portRef="resetn"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>rst_axi_pcie_0_62M_interconnect_aresetn</spirit:name>
