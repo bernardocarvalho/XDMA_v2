@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<bd:repository xmlns:bd="http://www.xilinx.com/bd" bd:BoundaryCRC="0x636B6C734CD451A6" bd:device="xc7a200tffg1156-2" bd:isValidated="true" bd:synthFlowMode="None" bd:tool_version="2016.4" bd:top="DMA_core" bd:version="1.00.a">
+<bd:repository xmlns:bd="http://www.xilinx.com/bd" bd:BoundaryCRC="0x636B6C734CD451A6" bd:device="xc7a200tffv1156-2" bd:isValidated="true" bd:synthFlowMode="None" bd:tool_version="2016.4" bd:top="DMA_core" bd:version="1.00.a">
 
   <spirit:component xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009">
     <spirit:vendor>xilinx.com</spirit:vendor>
@@ -136,17 +136,24 @@
         <spirit:configurableElementValues>
           <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_axi_pcie_0_0</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="NO_OF_LANES">X4</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="MAX_LINK_SPEED">2.5_GT/s</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="MAX_LINK_SPEED">5.0_GT/s</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="VENDOR_ID">0x32ab</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="DEVICE_ID">0x7014</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="DEVICE_ID">0x7024</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="SUBSYSTEM_VENDOR_ID">0x32ab</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="BAR1_ENABLED">true</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="BAR2_ENABLED">true</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="BAR1_TYPE">Memory</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="BAR2_TYPE">Memory</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="BAR1_SCALE">Kilobytes</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="BAR2_SCALE">Kilobytes</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="BAR0_SIZE">16</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="BAR1_SIZE">512</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="BAR2_SIZE">16</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="PCIEBAR2AXIBAR_0">0x00000000</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="PCIEBAR2AXIBAR_1">0x40000000</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="PCIEBAR2AXIBAR_2">0x44a00000</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="AXIBAR_AS_0">true</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="AXIBAR2PCIEBAR_0">0x40000000</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="S_AXI_DATA_WIDTH">128</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="M_AXI_DATA_WIDTH">128</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="BAR_64BIT">false</spirit:configurableElementValue>
@@ -218,7 +225,7 @@
         <spirit:instanceName>util_ds_buf_0</spirit:instanceName>
         <spirit:componentRef spirit:library="ip" spirit:name="util_ds_buf" spirit:vendor="xilinx.com" spirit:version="2.1"/>
         <spirit:configurableElementValues>
-          <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_util_ds_buf_0_2</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_util_ds_buf_0_1</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="C_BUF_TYPE">IBUFDSGTE</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
@@ -2534,7 +2541,7 @@
             <spirit:name>SEG_axi_pcie_0_CTL0</spirit:name>
             <spirit:displayName>/axi_pcie_0/S_AXI_CTL/CTL0</spirit:displayName>
             <spirit:addressOffset>0x00000000</spirit:addressOffset>
-            <spirit:range>256M</spirit:range>
+            <spirit:range>64K</spirit:range>
           </spirit:segment>
         </spirit:segments>
       </spirit:addressSpace>

@@ -1,0 +1,15 @@
+set eprj_proj_name "artix_dma"
+set eprj_def_root "src"
+set eprj_top_entity "test_board"
+set eprj_board_part ""
+set eprj_part "xc7a200tffv1156-2"
+set eprj_target_language "VHDL"
+set eprj_simulator_language "Mixed"
+set eprj_default_lib "xil_defaultlib"
+set eprj_synth_flow "Vivado Synthesis 2016"
+set eprj_synth_strategy "Flow_PerfOptimized_high"
+set eprj_impl_flow "Vivado Implementation 2016"
+set eprj_impl_strategy "Performance_ExplorePostRoutePhysOpt"
+set eprj_vivado_version "2016.4"
+set eprj_vivado_version_allow_upgrade true
+
