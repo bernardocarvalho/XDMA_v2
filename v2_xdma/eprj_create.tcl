@@ -488,7 +488,8 @@ if {[string equal [get_runs -quiet synth_1] ""]} {
     set_property flow $eprj_synth_flow [get_runs synth_1]
 }
 set obj [get_runs synth_1]
-
+# switch on retiming for synth_1
+set_property STEPS.SYNTH_DESIGN.ARGS.RETIMING true [get_runs synth_1]
 # set the current synth run
 current_run -synthesis [get_runs synth_1]
 

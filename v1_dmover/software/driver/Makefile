@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-    obj-m	:= bm1_drv.o
+    obj-m	:= ax_dma1.o
 else
 KDIR	:= /lib/modules/$(shell uname -r)/build
 PWD	:= $(shell pwd)

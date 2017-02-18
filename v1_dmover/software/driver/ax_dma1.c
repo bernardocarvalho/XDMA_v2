@@ -25,13 +25,13 @@ MODULE_LICENSE("GPL v2");
 
 //PCI IDs below are not registred! Use only for experiments!
 #define PCI_VENDOR_ID_WZAB 0x32ab
-#define PCI_DEVICE_ID_WZAB_BM1 0x7024
+#define PCI_DEVICE_ID_WZAB_BM1 0x7014
 //Address layout at the PCI side:
 //RES0 - PER_REGS (1MB)
 //RES1 - AXI_CTL (16KB)
 //RES2 - BRAM 4MB (really 1MB)
 
-static DEFINE_PCI_DEVICE_TABLE(ax1_pci_tbl) = {
+static DEFINE_PCI_DEVICE_TABLE(tst1_pci_tbl) = {
   {PCI_VENDOR_ID_WZAB, PCI_DEVICE_ID_WZAB_BM1, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
   {0,}
 };
@@ -40,8 +40,8 @@ MODULE_DEVICE_TABLE(pci, tst1_pci_tbl);
 #define SUCCESS 0
 #define DEVICE_NAME "wzab_axs1"
 
-//Global variables used to store information about WZAB_BM1
-//This must be changed, if we'd like to handle multiple WZAB_BM1 instances
+//Global variables used to store information about WZAB_AXS1
+//This must be changed, if we'd like to handle multiple WZAB_AXS1 instances
 static volatile uint32_t * fmem=NULL; //Pointer to registers area
 static volatile uint32_t * fmem2=NULL; //Pointer to registers area
 #define N_OF_RES (3)
