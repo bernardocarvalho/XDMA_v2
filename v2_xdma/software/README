@@ -1,0 +1,6 @@
+Codes in "driver" and "include" directories have been taken from publicly available Xilinx AR #65444
+https://www.xilinx.com/support/answers/65444.html
+Namely from: https://www.xilinx.com/Attachment/Xilinx_Answer_65444_Files_v2016_4.zip
+
+They have been modified according to the GPL license.
+

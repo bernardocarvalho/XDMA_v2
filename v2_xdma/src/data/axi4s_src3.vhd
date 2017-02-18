@@ -135,23 +135,23 @@ begin  -- architecture rtl
             s_data(7 downto 0)   <= to_unsigned(init_data, 8);
             s_data(11 downto 8)  <= to_unsigned(pkt_step, 4);
             s_data(31 downto 12) <= to_unsigned(pkt_len, 31-12+1);
-            wrd_count            <= 1;
+            wrd_count            <= 2;
             tvalid               <= '1';
             tlast                <= '0';
             ack_pkt              <= '1';
             src_state            <= ST_START_PKT;
           when ST_START_PKT =>
             if tready = '1' then
-              wrd_count <= 2;
+              wrd_count <= 3;
               s_data    <= to_unsigned(init_data, 256);
               src_state <= ST_SEND_PKT;
             end if;
           when ST_SEND_PKT =>
             if tready = '1' then
-              if wrd_count < pkt_len then
+              if wrd_count <= pkt_len then
                 wrd_count <= wrd_count+1;
                 s_data    <= s_data + pkt_step;
-                if wrd_count = pkt_len-1 then
+                if wrd_count = pkt_len then
                   tlast <= '1';
                 end if;
               else
