@@ -45,7 +45,7 @@ entity axi4s_src3 is
 end entity axi4s_src3;
 
 architecture rtl of axi4s_src3 is
-  constant PKT_DEL : integer               := 100;
+  constant PKT_DEL : integer               := 10;
   type T_SRC_STATE is (ST_IDLE, ST_START_HEAD, ST_START_PKT, ST_SEND_PKT);
   signal src_state : T_SRC_STATE           := ST_IDLE;
   signal pkt_step  : integer               := 0;
@@ -124,7 +124,7 @@ begin  -- architecture rtl
             if start_pkt = '1' then
               -- Get the pseudorandom length of the packet, initial value and step
               -- initial value
-              pkt_len   <= to_integer(unsigned(shift_reg(28 downto 12))) + 16000;
+              pkt_len   <= 40343123; --to_integer(unsigned(shift_reg(30 downto 12))) + 1600000;
               --pkt_len   <= to_integer(unsigned(shift_reg(16 downto 12))) + 4;
               pkt_step  <= to_integer(unsigned(shift_reg(11 downto 8)));
               init_data <= to_integer(unsigned(shift_reg(7 downto 0)));

@@ -136,9 +136,9 @@
         <spirit:configurableElementValues>
           <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_axi_pcie_0_0</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="NO_OF_LANES">X4</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="MAX_LINK_SPEED">5.0_GT/s</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="MAX_LINK_SPEED">2.5_GT/s</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="VENDOR_ID">0x32ab</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="DEVICE_ID">0x7024</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="DEVICE_ID">0x7014</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="SUBSYSTEM_VENDOR_ID">0x32ab</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="BAR1_ENABLED">true</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="BAR2_ENABLED">true</spirit:configurableElementValue>
@@ -225,7 +225,7 @@
         <spirit:instanceName>util_ds_buf_0</spirit:instanceName>
         <spirit:componentRef spirit:library="ip" spirit:name="util_ds_buf" spirit:vendor="xilinx.com" spirit:version="2.1"/>
         <spirit:configurableElementValues>
-          <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_util_ds_buf_0_1</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_util_ds_buf_0_0</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="C_BUF_TYPE">IBUFDSGTE</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
