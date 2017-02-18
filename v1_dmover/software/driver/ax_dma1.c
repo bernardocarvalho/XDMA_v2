@@ -42,11 +42,10 @@ MODULE_DEVICE_TABLE(pci, tst1_pci_tbl);
 
 //Structure describing the status of the WZAB_AXS1 device
 struct axs1_ctx{
-	uint32_t * 
+	uint32_t * gpio_regs;
+    uint32_t * dmov_regs;
 }
 
-static volatile uint32_t * fmem=NULL; //Pointer to registers area
-static volatile uint32_t * fmem2=NULL; //Pointer to registers area
 #define N_OF_RES (3)
 //If 64-bit bars are used:
 //static int res_nums[N_OF_RES]={0,2};
@@ -227,18 +226,19 @@ int tst1_mmap(struct file *filp,
 
 static int tst1_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
-
+  struct axs1_ctx * ctx = NULL;
   int res = 0;
   int i ;
-  if (my_pdev) {
-      //We can't handle more than one device
-      printk(KERN_INFO "The driver handles already one device: %p\n", my_pdev);
-      return -EINVAL;
-  }
   res =  pci_enable_device(pdev);
   if (res) {
     dev_err(&pdev->dev, "Can't enable PCI device, aborting\n");
     res = -ENODEV;
+    goto err1;
+  }
+  ctx = axs1_ctx_alloc()
+  if (ctx==NULL) {
+    dev_err(&pdev->dev, "Can't allocate context for PCI device, aborting\n");
+    res = -ENOMEM;
     goto err1;
   }
   for(i=0;i<N_OF_RES;i++) {
@@ -337,7 +337,8 @@ static int tst1_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
   my_pdev = pdev;
   return 0;
  err1:
-  if (fmem) {
+  if (ctx) {
+    if (ctx->) {
       iounmap(fmem);
       fmem = NULL;
   }

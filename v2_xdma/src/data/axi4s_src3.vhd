@@ -124,7 +124,7 @@ begin  -- architecture rtl
             if start_pkt = '1' then
               -- Get the pseudorandom length of the packet, initial value and step
               -- initial value
-              pkt_len   <= 40343123; --to_integer(unsigned(shift_reg(30 downto 12))) + 1600000;
+              pkt_len   <= 43; --to_integer(unsigned(shift_reg(30 downto 12))) + 1600000;
               --pkt_len   <= to_integer(unsigned(shift_reg(16 downto 12))) + 4;
               pkt_step  <= to_integer(unsigned(shift_reg(11 downto 8)));
               init_data <= to_integer(unsigned(shift_reg(7 downto 0)));
