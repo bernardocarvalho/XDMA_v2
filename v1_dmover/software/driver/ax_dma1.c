@@ -40,8 +40,11 @@ MODULE_DEVICE_TABLE(pci, tst1_pci_tbl);
 #define SUCCESS 0
 #define DEVICE_NAME "wzab_axs1"
 
-//Global variables used to store information about WZAB_AXS1
-//This must be changed, if we'd like to handle multiple WZAB_AXS1 instances
+//Structure describing the status of the WZAB_AXS1 device
+struct axs1_ctx{
+	uint32_t * 
+}
+
 static volatile uint32_t * fmem=NULL; //Pointer to registers area
 static volatile uint32_t * fmem2=NULL; //Pointer to registers area
 #define N_OF_RES (3)
