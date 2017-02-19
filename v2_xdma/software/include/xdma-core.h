@@ -491,6 +491,8 @@ struct xdma_engine {
 	wait_queue_head_t xdma_perf_wq;			/* Perf test sync */
 	u8 eop_found; /* used only for cyclic(rx:c2h) */
 	u32 user_buffer_index;
+    /* Members added by WZab */
+    struct wz_xdma_engine_ext wz_ext;
 };
 
 struct xdma_ocl_clockwiz {

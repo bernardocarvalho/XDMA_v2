@@ -3821,7 +3821,13 @@ static long char_sgdma_ioctl(struct file *file, unsigned int cmd,
         break;
     case IOCTL_XDMA_WZ_START:
         rc = ioctl_do_wz_start(engine, arg);
-
+        break;
+    case IOCTL_XDMA_WZ_STOP:
+        rc = ioctl_do_wz_stop(engine, arg);
+        break;
+    case IOCTL_XDMA_WZ_GETBUF:
+        rc = ioctl_do_wz_getbuf(engine, arg);
+        break;
 	default:
 		dbg_perf("Unsupported operation\n");
 		rc = -EINVAL;
