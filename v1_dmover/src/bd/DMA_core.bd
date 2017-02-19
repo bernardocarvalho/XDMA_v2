@@ -126,7 +126,7 @@
         <spirit:componentRef spirit:library="ip" spirit:name="axi_gpio" spirit:vendor="xilinx.com" spirit:version="2.0"/>
         <spirit:configurableElementValues>
           <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_axi_gpio_1_0</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="C_GPIO_WIDTH">1</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="C_GPIO_WIDTH">32</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="C_ALL_OUTPUTS">1</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
@@ -240,6 +240,30 @@
           <spirit:configurableElementValue spirit:referenceId="bd:BoundaryCRC">0x0</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
+      <spirit:componentInstance>
+        <spirit:instanceName>xlslice_0</spirit:instanceName>
+        <spirit:componentRef spirit:library="ip" spirit:name="xlslice" spirit:vendor="xilinx.com" spirit:version="1.0"/>
+        <spirit:configurableElementValues>
+          <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_xlslice_0_0</spirit:configurableElementValue>
+        </spirit:configurableElementValues>
+      </spirit:componentInstance>
+      <spirit:componentInstance>
+        <spirit:instanceName>xlslice_1</spirit:instanceName>
+        <spirit:componentRef spirit:library="ip" spirit:name="xlslice" spirit:vendor="xilinx.com" spirit:version="1.0"/>
+        <spirit:configurableElementValues>
+          <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_xlslice_0_1</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="DOUT_WIDTH">1</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="DIN_TO">1</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="DIN_FROM">1</spirit:configurableElementValue>
+        </spirit:configurableElementValues>
+      </spirit:componentInstance>
+      <spirit:componentInstance>
+        <spirit:instanceName>proc_sys_reset_0</spirit:instanceName>
+        <spirit:componentRef spirit:library="ip" spirit:name="proc_sys_reset" spirit:vendor="xilinx.com" spirit:version="5.0"/>
+        <spirit:configurableElementValues>
+          <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_proc_sys_reset_0_0</spirit:configurableElementValue>
+        </spirit:configurableElementValues>
+      </spirit:componentInstance>
     </spirit:componentInstances>
     <spirit:interconnections>
       <spirit:interconnection>
@@ -324,18 +348,14 @@
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="ACLK"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="S00_AXIS_ACLK"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="M00_AXIS_ACLK"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="slowest_sync_clk"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>rst_axi_pcie_0_62M_peripheral_aresetn</spirit:name>
         <spirit:internalPortReference spirit:componentRef="rst_axi_pcie_0_62M" spirit:portRef="peripheral_aresetn"/>
-        <spirit:internalPortReference spirit:componentRef="axi_datamover_0" spirit:portRef="m_axi_s2mm_aresetn"/>
-        <spirit:internalPortReference spirit:componentRef="axi_datamover_0" spirit:portRef="m_axis_s2mm_cmdsts_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_fifo_mm_s_0" spirit:portRef="s_axi_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_gpio_0" spirit:portRef="s_axi_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_gpio_1" spirit:portRef="s_axi_aresetn"/>
-        <spirit:internalPortReference spirit:componentRef="axis_data_fifo_0" spirit:portRef="s_axis_aresetn"/>
-        <spirit:internalPortReference spirit:componentRef="axis_dwidth_converter_0" spirit:portRef="aresetn"/>
-        <spirit:internalPortReference spirit:componentRef="axi4s_src3_0" spirit:portRef="resetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="S00_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M00_ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M02_ARESETN"/>
@@ -349,6 +369,7 @@
         <spirit:internalPortReference spirit:componentRef="rst_axi_pcie_0_62M" spirit:portRef="interconnect_aresetn"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="ARESETN"/>
         <spirit:internalPortReference spirit:componentRef="axis_interconnect_0" spirit:portRef="ARESETN"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="aux_reset_in"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>axi_fifo_mm_s_0_interrupt</spirit:name>
@@ -378,11 +399,6 @@
         <spirit:internalPortReference spirit:componentRef="axi_gpio_0" spirit:portRef="gpio2_io_i"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
-        <spirit:name>axi_gpio_1_gpio_io_o</spirit:name>
-        <spirit:internalPortReference spirit:componentRef="axi_gpio_1" spirit:portRef="gpio_io_o"/>
-        <spirit:internalPortReference spirit:componentRef="axi4s_src3_0" spirit:portRef="start"/>
-      </spirit:adHocConnection>
-      <spirit:adHocConnection>
         <spirit:name>util_ds_buf_0_IBUF_OUT</spirit:name>
         <spirit:internalPortReference spirit:componentRef="util_ds_buf_0" spirit:portRef="IBUF_OUT"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0" spirit:portRef="REFCLK"/>
@@ -391,11 +407,41 @@
         <spirit:name>axi_pcie_0_mmcm_lock</spirit:name>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0" spirit:portRef="mmcm_lock"/>
         <spirit:internalPortReference spirit:componentRef="rst_axi_pcie_0_62M" spirit:portRef="dcm_locked"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="dcm_locked"/>
       </spirit:adHocConnection>
       <spirit:adHocConnection>
         <spirit:name>axi_pcie_0_axi_ctl_aclk_out</spirit:name>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0" spirit:portRef="axi_ctl_aclk_out"/>
         <spirit:internalPortReference spirit:componentRef="axi_pcie_0_axi_periph" spirit:portRef="M01_ACLK"/>
+      </spirit:adHocConnection>
+      <spirit:adHocConnection>
+        <spirit:name>Net</spirit:name>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="interconnect_aresetn"/>
+        <spirit:internalPortReference spirit:componentRef="axi_datamover_0" spirit:portRef="m_axis_s2mm_cmdsts_aresetn"/>
+        <spirit:internalPortReference spirit:componentRef="axi_datamover_0" spirit:portRef="m_axi_s2mm_aresetn"/>
+        <spirit:internalPortReference spirit:componentRef="axis_data_fifo_0" spirit:portRef="s_axis_aresetn"/>
+        <spirit:internalPortReference spirit:componentRef="axis_dwidth_converter_0" spirit:portRef="aresetn"/>
+      </spirit:adHocConnection>
+      <spirit:adHocConnection>
+        <spirit:name>axi_gpio_1_gpio_io_o</spirit:name>
+        <spirit:internalPortReference spirit:componentRef="axi_gpio_1" spirit:portRef="gpio_io_o"/>
+        <spirit:internalPortReference spirit:componentRef="xlslice_1" spirit:portRef="Din"/>
+        <spirit:internalPortReference spirit:componentRef="xlslice_0" spirit:portRef="Din"/>
+      </spirit:adHocConnection>
+      <spirit:adHocConnection>
+        <spirit:name>xlslice_0_Dout</spirit:name>
+        <spirit:internalPortReference spirit:componentRef="xlslice_0" spirit:portRef="Dout"/>
+        <spirit:internalPortReference spirit:componentRef="axi4s_src3_0" spirit:portRef="start"/>
+      </spirit:adHocConnection>
+      <spirit:adHocConnection>
+        <spirit:name>xlslice_1_Dout</spirit:name>
+        <spirit:internalPortReference spirit:componentRef="xlslice_1" spirit:portRef="Dout"/>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="ext_reset_in"/>
+      </spirit:adHocConnection>
+      <spirit:adHocConnection>
+        <spirit:name>proc_sys_reset_0_peripheral_aresetn</spirit:name>
+        <spirit:internalPortReference spirit:componentRef="proc_sys_reset_0" spirit:portRef="peripheral_aresetn"/>
+        <spirit:internalPortReference spirit:componentRef="axi4s_src3_0" spirit:portRef="resetn"/>
       </spirit:adHocConnection>
     </spirit:adHocConnections>
     <spirit:hierConnections>
