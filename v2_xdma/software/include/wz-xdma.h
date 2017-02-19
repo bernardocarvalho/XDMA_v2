@@ -11,7 +11,7 @@
 
 struct xdma_engine;
 
-struct wz_ext{
+struct wz_xdma_engine_ext{
     int nof_bufs; // Number of DMA buffers
     
 }

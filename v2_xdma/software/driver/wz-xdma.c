@@ -18,9 +18,10 @@ void swz_mmap_close(struct vm_area_struct *vma)
  
 static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 {
-    struct page *page;    
+    struct page *page = NULL;    
     long offset;
-    struct xdma_char *xchar;
+    struct xdma_char *xchar = NULL;
+    char * buffer = NULL;
     xchar = (struct xdma_char *) vma->private_data;
     //Calculate the offset (according to info in 
     // https://lxr.missinglinkelectronics.com/linux+v2.6.32/drivers/gpu/drm/i915/i915_gem.c#L1195
@@ -29,19 +30,16 @@ static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
     //Calculate the buffer number
     buf_num = offset/WZ_DMA_BUFLEN;
     //Check if the resulting number is not higher than the number of allocated buffers
-    if(buf_num > xchar->engine.wz_ext.nof_bufs) {
+    if(buf_num > WZ_DMA_NOFBUFS) {
         printk(KERN_ERR "Access outside the buffer\n");
         return -EFAULT;
     }
     //Calculate the offset inside the buffer
     offset = offset - buf_num * WZ_DMA_BUF_LEN;
+    buffer = xchar->engine.wz_ext.buf_addr[buf_num];
     //Get the pfn of the buffer
-     vm_insert_pfn(vma, (unsigned long)vmf->virtual_address,virt_to_phys(addr) >> PAGE_SHIFT););    
-     
-    get_page(page);
-    vmf->page = page;            
-     
-    return 0;
+    vm_insert_pfn(vma, (unsigned long)vmf->virtual_address,virt_to_phys(&buffer[offset]) >> PAGE_SHIFT));         
+    return VM_FAULT_NOPAGE;
 }
  
 struct vm_operations_struct swz_mmap_vm_ops =
@@ -54,8 +52,10 @@ struct vm_operations_struct swz_mmap_vm_ops =
 
 static int char_sgdma_wz_mmap(struct file *file, struct vm_area_struct *vma)
 {
+    struxt xdma_char * xchar;
+    xchar = (struct xdma_char *) file->private_data;
     //Check if the buffers are allocated
-    if(test_xxx_@@_to_be written) {
+    if(xchar->engine.wz_ext.buf_ready) {
         printk(KERN_ERROR "Can't mmap when buffers are not allocated\n");
         return -EINVAL;    
     }
@@ -72,7 +72,8 @@ static int char_sgdma_wz_mmap(struct file *file, struct vm_area_struct *vma)
 static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long arg) 
 {
     int i;
-    wz_ext * ext;
+    struct wz_xdma_engine_ext * ext;
+    ext = &engine->wz_ext;
     //We allocate the buffers using dmam_alloc_noncoherent, so the user space
     //application may use cache.
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {
@@ -85,11 +86,49 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
                 dma_free_noncoherent(engine->lro->pci_dev,
                 WZ_DMA_BUFLEN, &ext->buf_addr[i], &ext->buf_dma_t[i]);
             }
+            ext->buf_ready = 0;
             return -EMEM;
         }
     }
-    
+    ext->buf_ready = 1;
+    return 0;
 }
-static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg);
-static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg);
-static int ioctl_do_wz_getbuf(struct xdma_engine *engine, unsigned long arg);
+
+static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long arg) 
+{
+    int i;
+    struct wz_xdma_engine_ext * ext;
+    ext = &engine->wz_ext;
+    if(ext->buf_ready) {
+        dma_free_noncoherent(engine->lro->pci_dev,
+        WZ_DMA_BUFLEN, &ext->buf_addr[i], &ext->buf_dma_t[i]);        
+    }
+    ext->buf_ready = 0;
+}
+
+/* 
+ * At the moment it is unclear, how we can handle interrupts. It seems, that the 
+ * interrupt handling scheme in xdma is quite complex and relying on it may impact
+ * the performance... 
+ * However we need to get the quick verification of the concept first.
+ */
+  
+
+static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
+{
+    //First build the XDMA transfer descriptors
+    //Close them into a loop
+    //@@@ Maybe the above should be moved to alloc_buffers???
+    //Submmit the whole transfer
+    //Start the transfer
+};
+
+static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
+{
+    //Stop the transfer
+    //Clear the transfer descriptors
+};
+
+static int ioctl_do_wz_getbuf(struct xdma_engine *engine, unsigned long arg)
+{
+};
