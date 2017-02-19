@@ -40,25 +40,41 @@ MODULE_DEVICE_TABLE(pci, tst1_pci_tbl);
 #define SUCCESS 0
 #define DEVICE_NAME "wzab_axs1"
 
+#define N_OF_RES (3)
+//Our device contains three BARs
+//The first one is the PCI core register file
+#define PCI_REGS (0)
+//The second one is the GPIO area (with "start" GPIO at 0x10000)
+#define GPIO_REGS (1)
+//The third one is the AXI_STREAM_FIFO
+#define DMOV_REGS (2)
 //Structure describing the status of the WZAB_AXS1 device
 struct axs1_ctx{
+	struct pci_dev * pdev;
 	uint32_t * gpio_regs;
+    uint32_t * pci_regs;
     uint32_t * dmov_regs;
+	resource_size_t mmio_start[N_OF_RES];
+	resource_size_t mmio_end[N_OF_RES];
+    resource_size_t mmio_flags[N_OF_RES];
+    resource_size_t mmio_len[N_OF_RES];
+}
+#define DMA_SIZE 4*1024*1024
+
+inline static struct axs1_ctx * axs1_ctx_alloc()
+{
+	axs1_ctx * ctx = kzalloc(sizeof(struct axs1_ctx), GFP_KERNEL);
 }
 
-#define N_OF_RES (3)
-//If 64-bit bars are used:
-//static int res_nums[N_OF_RES]={0,2};
-//If 32-bit bars are used:
-static int res_nums[N_OF_RES]={0,1,2};
-
-#define RES_REGS (1)
-#define PER_REGS (0)
-
-
-static resource_size_t mmio_start[N_OF_RES], mmio_end[N_OF_RES],
-    mmio_flags[N_OF_RES], mmio_len[N_OF_RES];
-#define DMA_SIZE (4*1024*1024)
+inline static void axs1_ctx_free(axs1_ctx * ctx)
+{
+	if(ctx->pdev) { //ctx is linked, so check for resources, that must be freed
+		if(ctx->gpio_regs) iounmap(ctx->gpio_regs);
+		if(ctx->pci_regs) iounmap(ctx->pci_regs);
+		if(ctx->dmov_regs) iounmap(ctx->dmov_regs);
+	}
+	kfree(ctx);
+}
 
 static void * dmabuf = NULL;
 static dma_addr_t dmaaddr = 0;
@@ -99,21 +115,6 @@ ssize_t tst1_write(struct file *filp, const char __user *buf,size_t count, loff_
   uint32_t val;
   if (count != 4) return -EINVAL; //Only 4-byte access allowed
   __copy_from_user(&val,buf,4);
-  if(val==1) { //copy buffer 1 to buffer 2
-    fmem2[0x18/4]=0xC0000000;
-    fmem2[0x20/4]=0x80000000;
-    mb();
-    fmem2[0x28/4]=1024*1024;
-    return 4;
-  };
-  if(val==2) { //copy buffer 2 to buffer 1
-    fmem2[0x18/4]=0x80000000;
-    fmem2[0x20/4]=0xC0000000;
-    mb();
-    fmem2[0x28/4]=1024*1024;
-    mb();
-    return 4;
-  };
   return -EINVAL;
 }
 
@@ -235,20 +236,23 @@ static int tst1_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
     res = -ENODEV;
     goto err1;
   }
-  ctx = axs1_ctx_alloc()
+  ctx = axs1_ctx_alloc();
   if (ctx==NULL) {
     dev_err(&pdev->dev, "Can't allocate context for PCI device, aborting\n");
     res = -ENOMEM;
     goto err1;
   }
+  ctx->pdev = pdev; //Link ctx with the device
+  pci_set_drvdata(pdev,ctx); //Link device with the ctx
+  //Now read the resources
   for(i=0;i<N_OF_RES;i++) {
-    mmio_start[i] = pci_resource_start(pdev, res_nums[i]);
-    mmio_end[i] = pci_resource_end(pdev, res_nums[i]);
-    mmio_flags[i] = pci_resource_flags(pdev, res_nums[i]);
-    mmio_len[i] = pci_resource_len(pdev, res_nums[i]);
+    ctx->mmio_start[i] = pci_resource_start(pdev, res_nums[i]);
+    ctx->mmio_end[i] = pci_resource_end(pdev, res_nums[i]);
+    ctx->mmio_flags[i] = pci_resource_flags(pdev, res_nums[i]);
+    ctx->mmio_len[i] = pci_resource_len(pdev, res_nums[i]);
     printk(KERN_INFO "Resource: %d start:%llx, end:%llx, flags:%llx, len=%llx\n",
-        i,mmio_start[i],mmio_end[i], mmio_flags[i], mmio_len[i]);
-    if (!(mmio_flags[i] & IORESOURCE_MEM)) {
+        i,ctx->mmio_start[i],ctx->mmio_end[i], ctx->mmio_flags[i], ctx->mmio_len[i]);
+    if (!(ctx->mmio_flags[i] & IORESOURCE_MEM)) {
         dev_err(&pdev->dev, "region %i not an MMIO resource, aborting\n",i);
         res = -ENODEV;
         goto err1;
@@ -262,21 +266,21 @@ static int tst1_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
         }
     }
   //Let's allocate the buffer for BM DMA
-  dmabuf=dma_alloc_coherent(&pdev->dev,DMA_SIZE,&dmaaddr,GFP_USER);
-  if(dmabuf==NULL) {
+  ctx->dmabuf=dma_alloc_coherent(&pdev->dev,DMA_SIZE,&ctx->dmaaddr,GFP_USER);
+  if(ctx->dmabuf==NULL) {
       printk(KERN_INFO "I can't allocate the DMA buffer\n");
       res = -ENOMEM;
       goto err1;
   }
-  printk(KERN_INFO "Allocated DMA buffer at phys: %p virt %p\n",dmaaddr,dmabuf);
+  printk(KERN_INFO "Allocated DMA buffer at phys: %p virt %p\n",ctx->dmaaddr,ctx->dmabuf);
   res = pci_request_regions(pdev, DEVICE_NAME);
   if (res)
     goto err1;
   pci_set_master(pdev);
   /* Let's check if the register block is read correctly */
-  fmem = ioremap(mmio_start[RES_REGS],mmio_len[RES_REGS]);
-  if(!fmem) {
-    printk ("<1>Mapping of memory for %s registers failed\n",
+  ctx->pci_regs = ioremap(mmio_start[PCI_REGS],mmio_len[PCI_REGS]);
+  if(ctx->pci_regs) {
+    printk ("<1>Mapping of memory for %s PCI registers failed\n",
 	    DEVICE_NAME);
     res= -ENOMEM;
     goto err1;
@@ -284,18 +288,26 @@ static int tst1_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
   //The first register should return our PCI_ID
   {
       uint32_t pci_id = PCI_VENDOR_ID_WZAB |  (PCI_DEVICE_ID_WZAB_BM1 << 16);
-      if(*fmem != pci_id) {
-          dev_info(&pdev->dev, "Not accessible registers BAR? expected id: %lx, read id: %lx\n",pci_id, *fmem);
+      if(*(ctx->pci_regs) != pci_id) {
+          dev_info(&pdev->dev, "Not accessible registers BAR? expected id: %lx, read id: %lx\n",pci_id, *(ctx->pci_regs));
           goto err1;
       }
   }  
-  //Now we can program the localtion of DMA buffer to the AXIBAR2PCIEBAR
-  fmem[0x208/4]=(dmaaddr >> 32);
-  fmem[0x20c/4]=(dmaaddr & 0xFFffFFff);
+  //Now we can program the location of DMA buffer to the AXIBAR2PCIEBAR
+  ctx->pci_regs[0x208/4]=(ctx->dmaaddr >> 32);
+  ctx->pci_regs[0x20c/4]=(ctx->dmaaddr & 0xFFffFFff);
   //Map AXI connected registers
-  fmem2 = ioremap(mmio_start[PER_REGS],mmio_len[PER_REGS]);
-  if(!fmem2) {
-    printk ("<1>Mapping of memory for %s registers failed\n",
+  ctx->gpio_regs = ioremap(mmio_start[GPIO_REGS],mmio_len[GPIO_REGS]);
+  if(!ctx->gpio_regs) {
+    printk ("<1>Mapping of memory for %s GPIO registers failed\n",
+	    DEVICE_NAME);
+    res= -ENOMEM;
+    goto err1;
+  }
+  //Map FIFO control registers
+  ctx->fifo_regs = ioremap(mmio_start[FIFO_REGS],mmio_len[FIFO_REGS]);
+  if(!ctx->fifo_regs) {
+    printk ("<1>Mapping of memory for %s FIFO registers failed\n",
 	    DEVICE_NAME);
     res= -ENOMEM;
     goto err1;
