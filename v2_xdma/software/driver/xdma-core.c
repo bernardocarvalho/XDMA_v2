@@ -8,6 +8,7 @@
  * Leon Woestenberg <leon@sidebranch.com>
  * Richard Tobin <richard.tobin@xilinx.com>
  * Sonal Santan <sonal.santan@xilinx.com>
+ * Modified by Wojciech Zabolotny <wzab@ise.pw.edu.pl>
  */
 
 /* SECTION: Header includes */
@@ -57,45 +58,7 @@ MODULE_PARM_DESC(load_firmware, "For UltraScale boards load xclbin firmware file
 struct class *g_xdma_class;	/* sys filesystem */
 
 static const struct pci_device_id pci_ids[] = {
-	{ PCI_DEVICE(0x10ee, 0x9011), },
-	{ PCI_DEVICE(0x10ee, 0x9012), },
-	{ PCI_DEVICE(0x10ee, 0x9014), },
-	{ PCI_DEVICE(0x10ee, 0x9018), },
-	{ PCI_DEVICE(0x10ee, 0x901F), },
-	{ PCI_DEVICE(0x10ee, 0x9021), },
-	{ PCI_DEVICE(0x10ee, 0x9022), },
-	{ PCI_DEVICE(0x10ee, 0x9024), },
-	{ PCI_DEVICE(0x10ee, 0x9028), },
-	{ PCI_DEVICE(0x10ee, 0x902F), },
-	{ PCI_DEVICE(0x10ee, 0x9031), },
-	{ PCI_DEVICE(0x10ee, 0x9032), },
-	{ PCI_DEVICE(0x10ee, 0x9034), },
-	{ PCI_DEVICE(0x10ee, 0x9038), },
-	{ PCI_DEVICE(0x10ee, 0x903F), },
-	{ PCI_DEVICE(0x10ee, 0x8011), },
-	{ PCI_DEVICE(0x10ee, 0x8012), },
-	{ PCI_DEVICE(0x10ee, 0x8014), },
-	{ PCI_DEVICE(0x10ee, 0x8018), },
-	{ PCI_DEVICE(0x10ee, 0x8021), },
-	{ PCI_DEVICE(0x10ee, 0x8022), },
-	{ PCI_DEVICE(0x10ee, 0x8024), },
-	{ PCI_DEVICE(0x10ee, 0x8028), },
-	{ PCI_DEVICE(0x10ee, 0x8031), },
-	{ PCI_DEVICE(0x10ee, 0x8032), },
-	{ PCI_DEVICE(0x10ee, 0x8034), },
-	{ PCI_DEVICE(0x10ee, 0x8038), },
-	{ PCI_DEVICE(0x10ee, 0x7011), },
-	{ PCI_DEVICE(0x10ee, 0x7012), },
-	{ PCI_DEVICE(0x10ee, 0x7014), },
-	{ PCI_DEVICE(0x10ee, 0x7018), },
-	{ PCI_DEVICE(0x10ee, 0x7021), },
-	{ PCI_DEVICE(0x10ee, 0x7022), },
-	{ PCI_DEVICE(0x10ee, 0x7024), },
-	{ PCI_DEVICE(0x10ee, 0x7028), },
-	{ PCI_DEVICE(0x10ee, 0x7031), },
-	{ PCI_DEVICE(0x10ee, 0x7032), },
-	{ PCI_DEVICE(0x10ee, 0x7034), },
-	{ PCI_DEVICE(0x10ee, 0x7038), },
+	{ PCI_DEVICE(0x32ab, 0x1333), },
 	{0,}
 };
 MODULE_DEVICE_TABLE(pci, pci_ids);
@@ -324,6 +287,7 @@ static const struct file_operations sg_polled_fops = {
 	.release = char_sgdma_close,
 	.read = char_sgdma_read,
 	.write = char_sgdma_write,
+    .mmap = char_sgdma_wz_mmap,
 	.unlocked_ioctl = char_sgdma_ioctl,
 	.llseek = char_sgdma_llseek,
 };
@@ -3852,6 +3816,11 @@ static long char_sgdma_ioctl(struct file *file, unsigned int cmd,
 	case IOCTL_XDMA_ALIGN_GET:
 		rc = ioctl_do_align_get(engine, arg);
 		break;
+    case IOCTL_XDMA_WZ_ALLOC_BUFFERS:
+        rc = ioctl_do_wz_alloc_buffers(engine, arg);
+        break;
+    case IOCTL_XDMA_WZ_START:
+        rc = ioctl_do_wz_start(engine, arg);
 
 	default:
 		dbg_perf("Unsupported operation\n");

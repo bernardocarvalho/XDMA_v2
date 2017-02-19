@@ -104,5 +104,9 @@ struct xdma_performance_ioctl
 #define IOCTL_XDMA_ADDRMODE_GET	_IOR('q', 5, int)
 #define IOCTL_XDMA_ALIGN_GET	_IOR('q', 6, int)
 
+// IOCTLs added by WZab 
+#define IOCTL_XDMA_WZ_ALLOC_BUFFERS	_IOR('q', 7, int)
+
+
 #endif /* _XDMA_IOCALLS_POSIX_H_ */
 
