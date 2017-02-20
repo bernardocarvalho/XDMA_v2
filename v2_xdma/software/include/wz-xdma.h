@@ -13,13 +13,17 @@ struct xdma_engine;
 
 struct wz_xdma_engine_ext{
     int nof_bufs; // Number of DMA buffers
-    
-}
+    dma_addr_t buf_dma_t[WZ_DMA_NOFBUFS];
+    void * buf_addr[WZ_DMA_NOFBUFS];
+    uint8_t buf_ready;
+};
 
-static int char_sgdma_wz_mmap(struct file *file, struct vm_area_struct *vma);
+
+static int char_sgdma_wz_mmap(struct file *filp, struct vm_area_struct *vma);
 
 /* Functions supporting the ioctls */
 static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long arg);
 static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg);
 static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg);
 static int ioctl_do_wz_getbuf(struct xdma_engine *engine, unsigned long arg);
+static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long arg);

@@ -27,6 +27,9 @@
 #include <linux/version.h>
 #include <linux/uio.h>
 
+/* includes added by WZab */
+#include "wz-xdma.h"
+
 /* SECTION: Preprocessor switches */
 
 /* Switch debug printing on/off */

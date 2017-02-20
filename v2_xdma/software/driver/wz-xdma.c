@@ -18,15 +18,15 @@ void swz_mmap_close(struct vm_area_struct *vma)
  
 static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 {
-    struct page *page = NULL;    
     long offset;
     struct xdma_char *xchar = NULL;
     char * buffer = NULL;
-    xchar = (struct xdma_char *) vma->private_data;
+    int buf_num = 0;
+    xchar = (struct xdma_char *) vma->vm_private_data;
     //Calculate the offset (according to info in 
     // https://lxr.missinglinkelectronics.com/linux+v2.6.32/drivers/gpu/drm/i915/i915_gem.c#L1195
     // it is better not ot use the vmf->pgoff )
-    offset = (unsigned long)vmf->virtual_address - vma->vm_start);
+    offset = (unsigned long)(vmf->virtual_address - vma->vm_start);
     //Calculate the buffer number
     buf_num = offset/WZ_DMA_BUFLEN;
     //Check if the resulting number is not higher than the number of allocated buffers
@@ -35,10 +35,10 @@ static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
         return -EFAULT;
     }
     //Calculate the offset inside the buffer
-    offset = offset - buf_num * WZ_DMA_BUF_LEN;
-    buffer = xchar->engine.wz_ext.buf_addr[buf_num];
+    offset = offset - buf_num * WZ_DMA_BUFLEN;
+    buffer = xchar->engine->wz_ext.buf_addr[buf_num];
     //Get the pfn of the buffer
-    vm_insert_pfn(vma, (unsigned long)vmf->virtual_address,virt_to_phys(&buffer[offset]) >> PAGE_SHIFT));         
+    vm_insert_pfn(vma,(unsigned long)(vmf->virtual_address),virt_to_phys(&buffer[offset]) >> PAGE_SHIFT);         
     return VM_FAULT_NOPAGE;
 }
  
@@ -52,11 +52,11 @@ struct vm_operations_struct swz_mmap_vm_ops =
 
 static int char_sgdma_wz_mmap(struct file *file, struct vm_area_struct *vma)
 {
-    struxt xdma_char * xchar;
+    struct xdma_char * xchar;
     xchar = (struct xdma_char *) file->private_data;
     //Check if the buffers are allocated
-    if(xchar->engine.wz_ext.buf_ready) {
-        printk(KERN_ERROR "Can't mmap when buffers are not allocated\n");
+    if(xchar->engine->wz_ext.buf_ready) {
+        printk(KERN_ERR "Can't mmap when buffers are not allocated\n");
         return -EINVAL;    
     }
     vma->vm_ops = &swz_mmap_vm_ops;
@@ -77,17 +77,17 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
     //We allocate the buffers using dmam_alloc_noncoherent, so the user space
     //application may use cache.
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {
-        ext->buf_addr[i] = dma_alloc_noncoherent(engine->lro->pci_dev,
+        ext->buf_addr[i] = dma_alloc_noncoherent(&engine->lro->pci_dev->dev,
                 WZ_DMA_BUFLEN, &ext->buf_dma_t[i],GFP_USER);
         if(ext->buf_addr[i] == NULL) {
             int j;
             //Free already allocated buffers
             for(j=0;j<i;j++) {
-                dma_free_noncoherent(engine->lro->pci_dev,
-                WZ_DMA_BUFLEN, &ext->buf_addr[i], &ext->buf_dma_t[i]);
+                dma_free_noncoherent(&engine->lro->pci_dev->dev,
+                WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);
             }
             ext->buf_ready = 0;
-            return -EMEM;
+            return -ENOMEM;
         }
     }
     ext->buf_ready = 1;
@@ -100,8 +100,8 @@ static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long ar
     struct wz_xdma_engine_ext * ext;
     ext = &engine->wz_ext;
     if(ext->buf_ready) {
-        dma_free_noncoherent(engine->lro->pci_dev,
-        WZ_DMA_BUFLEN, &ext->buf_addr[i], &ext->buf_dma_t[i]);        
+        dma_free_noncoherent(&engine->lro->pci_dev->dev,
+        WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);        
     }
     ext->buf_ready = 0;
 }

@@ -15,6 +15,7 @@
 
 #include <linux/ioctl.h>
 #include <linux/types.h>
+
 /* include early, to verify it depends only on the headers above */
 #include "xdma-ioctl.h"
 #include "xdma-core.h"
@@ -3828,6 +3829,9 @@ static long char_sgdma_ioctl(struct file *file, unsigned int cmd,
     case IOCTL_XDMA_WZ_GETBUF:
         rc = ioctl_do_wz_getbuf(engine, arg);
         break;
+    case IOCTL_XDMA_WZ_FREE_BUFFERS:
+        rc = ioctl_do_wz_free_buffers(engine, arg);
+        break;
 	default:
 		dbg_perf("Unsupported operation\n");
 		rc = -EINVAL;
@@ -5727,3 +5731,6 @@ static void __exit xdma_exit(void)
 
 module_init(xdma_init);
 module_exit(xdma_exit);
+
+/* Add my code */
+#include "wz-xdma.c"

@@ -106,6 +106,10 @@ struct xdma_performance_ioctl
 
 // IOCTLs added by WZab 
 #define IOCTL_XDMA_WZ_ALLOC_BUFFERS	_IOR('q', 7, int)
+#define IOCTL_XDMA_WZ_START	_IOR('q', 8, int)
+#define IOCTL_XDMA_WZ_STOP	_IOR('q', 9, int)
+#define IOCTL_XDMA_WZ_GETBUF	_IOR('q', 10, int)
+#define IOCTL_XDMA_WZ_FREE_BUFFERS	_IOR('q', 11, int)
 
 
 #endif /* _XDMA_IOCALLS_POSIX_H_ */
