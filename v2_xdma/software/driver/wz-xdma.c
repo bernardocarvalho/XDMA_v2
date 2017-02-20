@@ -100,8 +100,10 @@ static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long ar
     struct wz_xdma_engine_ext * ext;
     ext = &engine->wz_ext;
     if(ext->buf_ready) {
-        dma_free_noncoherent(&engine->lro->pci_dev->dev,
-        WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);        
+		for(i=0;i<WZ_DMA_NOFBUFS;i++) {
+			dma_free_noncoherent(&engine->lro->pci_dev->dev,
+			WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);        
+		}
     }
     ext->buf_ready = 0;
 }
