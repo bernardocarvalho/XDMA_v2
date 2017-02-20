@@ -118,17 +118,70 @@ static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long ar
 
 static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 {
+    int i;
+    struct wz_xdma_engine_ext * ext;
+    struct xdma_desc * desc;
+    struct xdma_desc * desc_first;
+    struct xdma_desc * desc_last;
+    dma_addr_t desc_first_dma_t;
+
+    ext = &engine->wz_ext;
+	if(! ext->buf_ready) {
+        printk(KERN_ERR "I can't start transfer if buffers are not allocated\n");
+        return -EFAULT;
+	}
     //First build the XDMA transfer descriptors
-    //Close them into a loop
+    desc_first = xdma_desc_alloc(engine->lro->pci_dev,WZ_DMA_NOFBUFS,
+			&desc_first_dma_t, &desc_last);
+	if(!desc_first) {
+        printk(KERN_ERR "I can't allocate descriptors\n");
+        return -EFAULT;
+	}
+	//Later we will need to make the transfer cyclic, but now it is commented out.
+	// xdma_desc_link(ext->xdma_desc_last, ext->xdma_desc, ext->xdma_desc_addr_t); 
+    //Fill the descriptors with data of our buffers.
+    desc = desc_first;
+    for (i=0;i<WZ_DMA_NOFBUFS;i++){
+		uint32_t control;
+		xdma_desc_set(&desc[i],ext->buf_dma_t[i],0,WZ_DMA_BUFLEN,0);
+		control = XDMA_DESC_EOP;
+		control |= XDMA_DESC_COMPLETED;
+		xdma_desc_control(&desc[i], control);
+	}
     //@@@ Maybe the above should be moved to alloc_buffers???
-    //Submmit the whole transfer
+    //Submmit the whole descriptor list (how?!)
+    //We simply imitate the transfer building 
+    ext->transfer = kzalloc(sizeof(struct xdma_transfer), GFP_KERNEL);
+    if(!ext->transfer) {
+		xdma_desc_free(engine->lro->pci_dev,WZ_DMA_NOFBUFS,
+			desc_first, desc_first_dma_t);
+        printk(KERN_ERR "I can't start transfer if buffers are not allocated\n");
+        return -ENOMEM;
+	}
+	ext->transfer->desc_virt = desc_first;
+	ext->transfer->desc_bus = desc_first_dma_t;
+	ext->transfer->desc_adjacent = 1;
+	ext->transfer->desc_num = WZ_DMA_NOFBUFS;
+	ext->transfer->dir_to_dev = 0;
+	ext->transfer->sgl_nents = 1;
+	ext->transfer->cyclic = 0; //At the moment! To be changed later!
     //Start the transfer
+    transfer_queue(engine, ext->transfer);
+    engine_start(engine);
 };
 
 static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
 {
+    struct wz_xdma_engine_ext * ext;
+    struct xdma_desc * desc;
+    ext = &engine->wz_ext;
     //Stop the transfer
+    xdma_engine_stop(engine);
+    //engine_cyclic_stop(engine);
+    
     //Clear the transfer descriptors
+    transfer_destroy(engine->lro, ext->transfer);
+    ext->transfer = NULL;
 };
 
 static int ioctl_do_wz_getbuf(struct xdma_engine *engine, unsigned long arg)
