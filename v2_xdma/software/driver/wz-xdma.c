@@ -128,6 +128,7 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
     struct xdma_desc * desc;
     struct xdma_desc * desc_first;
     struct xdma_desc * desc_last;
+	uint32_t control;
     dma_addr_t desc_first_dma_t;
 
     ext = &engine->wz_ext;
@@ -147,14 +148,13 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
     //Fill the descriptors with data of our buffers.
     desc = desc_first;
     for (i=0;i<WZ_DMA_NOFBUFS;i++){
-		uint32_t control;
 		xdma_desc_set(&desc[i],ext->buf_dma_t[i],0,WZ_DMA_BUFLEN,0);
 		control = XDMA_DESC_EOP;
 		//control |= XDMA_DESC_COMPLETED;
 		xdma_desc_control(&desc[i], control);
 	}
     //Set STOP flag in the last descriptor
-    control = xdma_desc_control_set(&desc[WZ_DMA_NOFBUFS-1],XDMA_DESC_STOPPED);
+    xdma_desc_control_set(&desc[WZ_DMA_NOFBUFS-1],XDMA_DESC_STOPPED);
 	printk(KERN_INFO "Descriptors filled\n");
     //@@@ Maybe the above should be moved to alloc_buffers???
     //Submmit the whole descriptor list (how?!)
