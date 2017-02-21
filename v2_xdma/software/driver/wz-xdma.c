@@ -61,7 +61,7 @@ static int char_sgdma_wz_mmap(struct file *file, struct vm_area_struct *vma)
         return -EINVAL;    
     }
     vma->vm_ops = &swz_mmap_vm_ops;
-    vma->vm_flags |= VM_RESERVED;    
+    vma->vm_flags |= VM_IO | VM_RESERVED | VM_CAN_NONLINEAR | VM_PFNMAP;
     //file->private data contains the pointer to the xdma_char
     vma->vm_private_data = file->private_data;
     swz_mmap_open(vma);
