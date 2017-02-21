@@ -55,7 +55,7 @@ static int char_sgdma_wz_mmap(struct file *file, struct vm_area_struct *vma)
     struct xdma_char * xchar;
     xchar = (struct xdma_char *) file->private_data;
     //Check if the buffers are allocated
-    if(xchar->engine->wz_ext.buf_ready) {
+    if(!xchar->engine->wz_ext.buf_ready) {
         printk(KERN_ERR "Can't mmap when buffers are not allocated\n");
         return -EINVAL;    
     }
@@ -77,8 +77,9 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
     //We allocate the buffers using dmam_alloc_noncoherent, so the user space
     //application may use cache.
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {
-        ext->buf_addr[i] = dma_alloc_noncoherent(&engine->lro->pci_dev->dev,
+        ext->buf_addr[i] = dmam_alloc_noncoherent(&engine->lro->pci_dev->dev,
                 WZ_DMA_BUFLEN, &ext->buf_dma_t[i],GFP_USER);
+				printk(KERN_INFO "Allocated buffer: virt=%llx, dma=%llx\n",(u64) ext->buf_addr[i],(u64) ext->buf_dma_t[i]);                
         if(ext->buf_addr[i] == NULL) {
             int j;
             //Free already allocated buffers
@@ -99,6 +100,7 @@ static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long ar
     int i;
     struct wz_xdma_engine_ext * ext;
     ext = &engine->wz_ext;
+  	printk(KERN_INFO "Starting to free buffers\n");
     if(ext->buf_ready) {
 		for(i=0;i<WZ_DMA_NOFBUFS;i++) {
 			dma_free_noncoherent(&engine->lro->pci_dev->dev,
@@ -106,6 +108,8 @@ static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long ar
 		}
     }
     ext->buf_ready = 0;
+  	printk(KERN_INFO "All buffers freed\n");
+  	return 0;
 }
 
 /* 
@@ -148,6 +152,7 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 		control |= XDMA_DESC_COMPLETED;
 		xdma_desc_control(&desc[i], control);
 	}
+	printk(KERN_INFO "Descriptors filled\n");
     //@@@ Maybe the above should be moved to alloc_buffers???
     //Submmit the whole descriptor list (how?!)
     //We simply imitate the transfer building 
@@ -166,8 +171,10 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 	ext->transfer->sgl_nents = 1;
 	ext->transfer->cyclic = 0; //At the moment! To be changed later!
     //Start the transfer
+	printk(KERN_INFO "Starting transfer\n");
     transfer_queue(engine, ext->transfer);
     engine_start(engine);
+    return 0;
 };
 
 static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
@@ -182,8 +189,10 @@ static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
     //Clear the transfer descriptors
     transfer_destroy(engine->lro, ext->transfer);
     ext->transfer = NULL;
+    return 0;
 };
 
 static int ioctl_do_wz_getbuf(struct xdma_engine *engine, unsigned long arg)
 {
+	return -EINVAL;
 };

@@ -22,6 +22,9 @@
 #include "xdma-sgm.h"
 #include "xbar_sys_parameters.h"
 
+/* includes added by WZab */
+#include "wz-xdma-funcs.h"
+
 /* SECTION: Module licensing */
 
 #if XDMA_GPL
@@ -299,6 +302,7 @@ static const struct file_operations sg_interrupt_fops = {
 	.release = char_sgdma_close,
 	.read = char_sgdma_read,
 	.write = char_sgdma_write,
+    .mmap = char_sgdma_wz_mmap,
 	.unlocked_ioctl = char_sgdma_ioctl,
 	.llseek = char_sgdma_llseek,
 #if !defined(XDMA_NEW_AIO)

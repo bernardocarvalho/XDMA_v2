@@ -25,10 +25,11 @@
 #include <linux/aio.h>
 #include <linux/splice.h>
 #include <linux/version.h>
-#include <linux/uio.h>
 
+#include <linux/uio.h>
 /* includes added by WZab */
 #include "wz-xdma.h"
+
 
 /* SECTION: Preprocessor switches */
 
@@ -63,7 +64,7 @@
 
 /* SECTION: Preprocessor macros/constants */
 
-#define DRV_NAME "xdma"
+#define DRV_NAME "wz-xdma"
 #define XDMA_MINOR_BASE (0)
 #define XDMA_MINOR_COUNT (255)
 

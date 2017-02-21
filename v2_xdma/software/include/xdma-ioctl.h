@@ -105,11 +105,11 @@ struct xdma_performance_ioctl
 #define IOCTL_XDMA_ALIGN_GET	_IOR('q', 6, int)
 
 // IOCTLs added by WZab 
-#define IOCTL_XDMA_WZ_ALLOC_BUFFERS	_IOR('q', 7, int)
-#define IOCTL_XDMA_WZ_START	_IOR('q', 8, int)
-#define IOCTL_XDMA_WZ_STOP	_IOR('q', 9, int)
-#define IOCTL_XDMA_WZ_GETBUF	_IOR('q', 10, int)
-#define IOCTL_XDMA_WZ_FREE_BUFFERS	_IOR('q', 11, int)
+#define IOCTL_XDMA_WZ_ALLOC_BUFFERS	_IO('q', 7)
+#define IOCTL_XDMA_WZ_START	_IO('q', 8)
+#define IOCTL_XDMA_WZ_STOP	_IO('q', 9)
+#define IOCTL_XDMA_WZ_GETBUF	_IO('q', 10)
+#define IOCTL_XDMA_WZ_FREE_BUFFERS	_IO('q', 11)
 
 
 #endif /* _XDMA_IOCALLS_POSIX_H_ */
