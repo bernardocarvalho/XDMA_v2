@@ -168,7 +168,7 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 	}
 	ext->transfer->desc_virt = desc_first;
 	ext->transfer->desc_bus = desc_first_dma_t;
-	ext->transfer->desc_adjacent = 1;
+	ext->transfer->desc_adjacent = 0;
 	ext->transfer->desc_num = WZ_DMA_NOFBUFS;
 	ext->transfer->dir_to_dev = 0;
 	ext->transfer->sgl_nents = 1;
