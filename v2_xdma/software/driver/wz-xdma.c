@@ -26,6 +26,7 @@ static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
     //Calculate the offset (according to info in 
     // https://lxr.missinglinkelectronics.com/linux+v2.6.32/drivers/gpu/drm/i915/i915_gem.c#L1195
     // it is better not ot use the vmf->pgoff )
+    printk(KERN_INFO "Fault virt: %llx, start of vma: %llx\n", (u64) vmf->virtual_address, (u64) vma->vm_start);
     offset = (unsigned long)(vmf->virtual_address - vma->vm_start);
     //Calculate the buffer number
     buf_num = offset/WZ_DMA_BUFLEN;
