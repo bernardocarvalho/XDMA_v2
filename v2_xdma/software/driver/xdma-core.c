@@ -4051,10 +4051,12 @@ static int char_sgdma_open(struct inode *inode, struct file *file)
 	dbg_tfr("char_sgdma_open(0x%p, 0x%p)\n", inode, file);
 
 	/* AXI ST C2H? Set up RX ring buffer on host with a cyclic transfer */
+    /* Removed by WZab
 	if (engine->streaming && !engine->dir_to_dev)
 		rc = cyclic_transfer_setup(engine);
 
 	return rc;
+    */
 }
 
 static int cyclic_shutdown_polled(struct xdma_engine *engine)
@@ -4178,10 +4180,10 @@ static int char_sgdma_close(struct inode *inode, struct file *file)
 	BUG_ON(engine->magic != MAGIC_ENGINE);
 
 	dbg_tfr("char_sgdma_close(0x%p, 0x%p)\n", inode, file);
-
+    /* Removed by WZab - maybe we can adapt it instead?
 	if (engine->streaming && !engine->dir_to_dev)
 		rc = cyclic_transfer_teardown(engine);
-
+    */
 	return rc;
 }
 
