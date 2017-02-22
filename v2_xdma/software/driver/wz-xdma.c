@@ -183,7 +183,7 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
     //Start the transfer
 	printk(KERN_INFO "Starting transfer\n");
     transfer_queue(engine, ext->transfer);
-    engine_start(engine);
+    //engine_start(engine);
     return 0;
 };
 
