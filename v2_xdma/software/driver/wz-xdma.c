@@ -146,9 +146,16 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 	//Later we will need to make the transfer cyclic, but now it is commented out.
 	// xdma_desc_link(ext->xdma_desc_last, ext->xdma_desc, ext->xdma_desc_addr_t); 
     //Fill the descriptors with data of our buffers.
+	//Alloc the writeback buffer
+	ext->writeback = dmam_alloc_coherent(&engine->lro->pci_dev->dev,
+                sizeof(uint64_t)*WZ_DMA_NOFBUFS, &ext->writeback_dma_t,GFP_KERNEL);
+    if(!ext->writeback) {
+        printk(KERN_ERR "I can't allocate writeback buffer\n");
+        return -EFAULT;
+	}
     desc = desc_first;
     for (i=0;i<WZ_DMA_NOFBUFS;i++){
-		xdma_desc_set(&desc[i],ext->buf_dma_t[i],&ext->writeback[i],WZ_DMA_BUFLEN,0);
+		xdma_desc_set(&desc[i],ext->buf_dma_t[i],ext->writeback_dma_t+i*sizeof(uint64_t),WZ_DMA_BUFLEN,0);
 		control = XDMA_DESC_EOP;
 		//control |= XDMA_DESC_COMPLETED;
 		xdma_desc_control(&desc[i], control);
@@ -188,10 +195,14 @@ static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
     //Stop the transfer
     xdma_engine_stop(engine);
     //engine_cyclic_stop(engine);
-    
     //Clear the transfer descriptors
     transfer_destroy(engine->lro, ext->transfer);
     ext->transfer = NULL;
+    //Free the writeback buffers
+    dmam_free_coherent(&engine->lro->pci_dev->dev,
+		sizeof(uint64_t)*WZ_DMA_NOFBUFS, ext->writeback, ext->writeback_dma_t);
+	ext->writeback = NULL;
+	ext->writeback_dma_t = 0;
     return 0;
 };
 

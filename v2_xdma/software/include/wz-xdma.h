@@ -16,7 +16,8 @@ struct wz_xdma_engine_ext{
     int nof_bufs; // Number of DMA buffers
     dma_addr_t buf_dma_t[WZ_DMA_NOFBUFS];
     void * buf_addr[WZ_DMA_NOFBUFS];
-    uint64_t writeback[WZ_DMA_NOFBUFS];
+    uint64_t * writeback;
+    dma_addr_t writeback_dma_t;
     struct xdma_transfer *transfer;
     uint8_t buf_ready;
 };
