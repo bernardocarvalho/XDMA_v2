@@ -180,6 +180,8 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 	ext->transfer->dir_to_dev = 0;
 	ext->transfer->sgl_nents = 1;
 	ext->transfer->cyclic = 0; //At the moment! To be changed later!
+    /* initialize wait queue */
+	init_waitqueue_head(&ext->transfer->wq);
     //Start the transfer
 	printk(KERN_INFO "Starting transfer\n");
     transfer_queue(engine, ext->transfer);
