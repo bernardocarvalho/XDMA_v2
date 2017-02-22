@@ -33,11 +33,11 @@ print m[0:100]
 #fcntl.ioctl(f,ord("q")<<8 | 8, 0)
 def take_data():
    # Restart source
-   ur_write(0x10004,0)
-   time.sleep(0.2)
-   ur_write(0x10004,1)
+   ur_write(0x10000,0)
    # Start DMA
    fcntl.ioctl(f,ord("q")<<8 | 8, 0)
+   time.sleep(0.2)
+   ur_write(0x10000,1)
    # Wait
    time.sleep(0.2)
    # Stop DMA
