@@ -4054,9 +4054,9 @@ static int char_sgdma_open(struct inode *inode, struct file *file)
     /* Removed by WZab
 	if (engine->streaming && !engine->dir_to_dev)
 		rc = cyclic_transfer_setup(engine);
+    */
 
 	return rc;
-    */
 }
 
 static int cyclic_shutdown_polled(struct xdma_engine *engine)
