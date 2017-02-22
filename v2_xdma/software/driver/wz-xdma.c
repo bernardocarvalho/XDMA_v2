@@ -148,7 +148,7 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
     //Fill the descriptors with data of our buffers.
     desc = desc_first;
     for (i=0;i<WZ_DMA_NOFBUFS;i++){
-		xdma_desc_set(&desc[i],ext->buf_dma_t[i],0,WZ_DMA_BUFLEN,0);
+		xdma_desc_set(&desc[i],ext->buf_dma_t[i],&ext->writeback[i],WZ_DMA_BUFLEN,0);
 		control = XDMA_DESC_EOP;
 		//control |= XDMA_DESC_COMPLETED;
 		xdma_desc_control(&desc[i], control);
