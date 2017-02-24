@@ -143,8 +143,10 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
         printk(KERN_ERR "I can't allocate descriptors\n");
         return -EFAULT;
 	}
+    #ifdef WZ_TRANSFER_CYCLIC
 	//Later we will need to make the transfer cyclic, but now it is commented out.
-	// xdma_desc_link(ext->xdma_desc_last, ext->xdma_desc, ext->xdma_desc_addr_t); 
+	xdma_desc_link(ext->xdma_desc_last, ext->xdma_desc, ext->xdma_desc_addr_t); 
+    #endif
     //Fill the descriptors with data of our buffers.
 	//Alloc the writeback buffer
 	ext->writeback = dmam_alloc_coherent(&engine->lro->pci_dev->dev,
@@ -179,7 +181,10 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 	ext->transfer->desc_num = WZ_DMA_NOFBUFS;
 	ext->transfer->dir_to_dev = 0;
 	ext->transfer->sgl_nents = 1;
-	ext->transfer->cyclic = 0; //At the moment! To be changed later!
+	ext->transfer->cyclic = 0;
+	#ifdef WZ_TRANSFER_CYCLIC
+	ext->transfer->cyclic = 1;
+	#endif
     /* initialize wait queue */
 	init_waitqueue_head(&ext->transfer->wq);
     //Start the transfer

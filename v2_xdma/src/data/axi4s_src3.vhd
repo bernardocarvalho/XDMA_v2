@@ -150,7 +150,7 @@ begin  -- architecture rtl
             if tready = '1' then
               if wrd_count <= pkt_len then
                 wrd_count <= wrd_count+1;
-                s_data    <= s_data + pkt_step;
+                s_data    <= s_data + 1; --pkt_step;
                 if wrd_count = pkt_len then
                   tlast <= '1';
                 end if;

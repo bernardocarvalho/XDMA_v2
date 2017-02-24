@@ -88,3 +88,4 @@ set_property PACKAGE_PIN R10 [get_ports {mlvds_fde_o[7]}]
 set_property IOSTANDARD LVCMOS15 [get_ports {mlvds_fde_o[7]}]
 
 
+
