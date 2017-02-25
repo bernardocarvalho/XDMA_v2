@@ -5,7 +5,7 @@
  * 
  * This file will be included in the original xdma-core.c to make maintenace easier
  */
- 
+ #define WZ_TRANSFER_CYCLIC
  
 /* Mapping of the allocated buffers */  
 void swz_mmap_open(struct vm_area_struct *vma)
