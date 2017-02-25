@@ -1118,7 +1118,7 @@ static int engine_service_cyclic(struct xdma_engine *engine)
 	if (poll_mode)
 		rc = engine_service_cyclic_polled(engine);
 	else
-		rc = engine_service_cyclic_interrupt(engine);
+		rc = wz_engine_service_cyclic_interrupt(engine);
 
 	return rc;
 }

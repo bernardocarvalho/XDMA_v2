@@ -108,9 +108,10 @@ struct xdma_performance_ioctl
 #define IOCTL_XDMA_WZ_ALLOC_BUFFERS	_IO('q', 7)
 #define IOCTL_XDMA_WZ_START	_IO('q', 8)
 #define IOCTL_XDMA_WZ_STOP	_IO('q', 9)
-#define IOCTL_XDMA_WZ_GETBUF	_IO('q', 10)
-#define IOCTL_XDMA_WZ_FREE_BUFFERS	_IO('q', 11)
-
+#define IOCTL_XDMA_WZ_FREE_BUFFERS	_IO('q', 10)
+#define IOCTL_XDMA_WZ_GETBUF	_IOR('q', 11, struct wz_xdma_data_block_desc)
+#define IOCTL_XDMA_WZ_CONFIRM _IOW('q',12, struct wz_xdma_data_block_confirm)
+#define IOCTL_XDMA_WZ_GETFREE _IO('q',13)
 
 #endif /* _XDMA_IOCALLS_POSIX_H_ */
 

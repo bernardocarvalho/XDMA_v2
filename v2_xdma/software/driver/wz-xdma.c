@@ -217,7 +217,69 @@ static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
     return 0;
 };
 
+//Please note, that we may be either in the middle of the block assembly,
+//or waiting on the first block!
+//getbuf waits, until it receives EOP.
 static int ioctl_do_wz_getbuf(struct xdma_engine *engine, unsigned long arg)
 {
+	struct wz_xdma_data_block_desc db_desc;
+	int check_desc;
+	int res;
+	db_desc.first_desc = -1;
+	res = wait_event_interruptible(&engine->rx_transfer_cyclic->wq, engine->wz_ext->eop_count != 0);
+	if(res<0) return res;
+	//Now we can be sure, that there is buffer ready to service			
+	check_desc = engine->wz_ext->desc_head;
+	while(true) {
+		struct xdma_desc * cur_desc = &engine->wz_ext->transfer->desc_virt[check_desc];
+		struct xdma_result * cur_res = (struct xdma_desc *) cur_desc;
+		//Sleep, until the current head descriptor is not completed
+		
+		if((cur_desc->status >> 16) & 0xffff !=  C2H_WB) {
+			//It should never happen, as we are promised to have at least one EOP!
+			printk(KERN_ERR "data corruption? No EOP in getbuf!\n");
+			return -EINVAL;
+		}
+		//This is a serviced descriptor.
+		if (db_desc.first_desc == -1)
+		   db_desc.first_desc = cur_desc;
+		//Check if EOP is in this descriptor
+		if( cur_res->status & 1 ) {
+			//This is the last packet in the block!
+			db_desc.last_desc = cur_desc;
+			db_desc.last_len = cur_res.length;
+			//Try to copy result to the userspace
+			res = copy_to_user((void __user *)arg, db_desc,
+						sizeof(struct wz_xdma_data_block_desc));
+		    
+			//Wake up readers!
+		}
+		
+	}
+
 	return -EINVAL;
 };
+// No !!! The above design is wrong!!! I don't want to traverse the descriptors' list twice!
+// Once, counting the EOPs, and the second time, assembling the blocks!
+
+//The function below is called after the interupt
+static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
+{
+	
+	BUG_ON(!engine);
+	BUG_ON(engine->magic != MAGIC_ENGINE);
+
+	wake_up_interruptible(&engine->rx_transfer_cyclic->wq);
+
+	/* engine was running but is no longer busy? */
+	if ((engine->running) && !(engine->status & XDMA_STAT_BUSY)) {
+		/* transfers on queue? */
+		if (!list_empty(&engine->transfer_list))
+			engine_transfer_dequeue(engine);
+
+		engine_service_shutdown(engine);
+	}
+
+	return 0;
+}
+
