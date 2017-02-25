@@ -201,7 +201,7 @@ static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
     ext = &engine->wz_ext;
     //Stop the transfer (?Should it be done?)
     //xdma_engine_stop(engine);
-    //engine_cyclic_stop(engine);
+    engine_cyclic_stop(engine);
     //Clear the transfer descriptors
     transfer_destroy(engine->lro, ext->transfer);
     ext->transfer = NULL;
