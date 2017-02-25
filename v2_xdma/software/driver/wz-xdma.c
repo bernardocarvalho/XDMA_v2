@@ -5,7 +5,7 @@
  * 
  * This file will be included in the original xdma-core.c to make maintenace easier
  */
- #define WZ_TRANSFER_CYCLIC
+ #define WZ_TRANSFER_CYCLIC 1
  
 /* Mapping of the allocated buffers */  
 void swz_mmap_open(struct vm_area_struct *vma)
@@ -145,7 +145,7 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 	}
     #ifdef WZ_TRANSFER_CYCLIC
 	//Later we will need to make the transfer cyclic, but now it is commented out.
-	xdma_desc_link(ext->xdma_desc_last, ext->xdma_desc, ext->xdma_desc_addr_t); 
+	xdma_desc_link(desc_last, desc_first, desc_first_dma_t); 
     #endif
     //Fill the descriptors with data of our buffers.
 	//Alloc the writeback buffer
@@ -163,7 +163,7 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 		xdma_desc_control(&desc[i], control);
 	}
     //Set STOP flag in the last descriptor
-    xdma_desc_control_set(&desc[WZ_DMA_NOFBUFS-1],XDMA_DESC_STOPPED);
+    //xdma_desc_control_set(&desc[WZ_DMA_NOFBUFS-1],XDMA_DESC_STOPPED);
 	printk(KERN_INFO "Descriptors filled\n");
     //@@@ Maybe the above should be moved to alloc_buffers???
     //Submmit the whole descriptor list (how?!)

@@ -41,5 +41,6 @@ def take_data():
    # Wait
    time.sleep(0.2)
    # Stop DMA
+   print "DMA status:"+hex(cr_read(0x1040))
    fcntl.ioctl(f,ord("q")<<8 | 9, 0)
 
