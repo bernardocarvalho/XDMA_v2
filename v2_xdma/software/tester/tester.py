@@ -40,21 +40,21 @@ def take_data():
    ur_write(0x10000,1)
    # Wait
    time.sleep(0.2)
-   print str(m[0:100])
+   print [hex(ord(i)) for i in m[0:10]]
    time.sleep(0.2)
-   print str(m[0:100])
+   print [hex(ord(i)) for i in m[0:10]]
    time.sleep(0.2)
-   print str(m[0:100])
+   print [hex(ord(i)) for i in m[0:10]]
    time.sleep(0.2)
-   print str(m[0:100])
+   print [hex(ord(i)) for i in m[0:10]]
    time.sleep(0.2)
-   print str(m[0:100])
+   print [hex(ord(i)) for i in m[0:10]]
    time.sleep(0.2)
-   print str(m[0:100])
+   print [hex(ord(i)) for i in m[0:10]]
    time.sleep(0.2)
-   print str(m[0:100])
+   print [hex(ord(i)) for i in m[0:10]]
    time.sleep(0.2)
-   print str(m[0:100])
+   print [hex(ord(i)) for i in m[0:10]]
    # Stop DMA
    print "DMA status:"+hex(cr_read(0x1040))
    fcntl.ioctl(f,ord("q")<<8 | 9, 0)

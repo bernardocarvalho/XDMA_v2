@@ -148,16 +148,20 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 	xdma_desc_link(desc_last, desc_first, desc_first_dma_t); 
     #endif
     //Fill the descriptors with data of our buffers.
-	//Alloc the writeback buffer
-	ext->writeback = dmam_alloc_coherent(&engine->lro->pci_dev->dev,
+	//Allocation of the writeback buffer is removed!
+	//we will use the descriptor area for that purpose, to implement the 
+	//hardware-based overrun protection, as described in
+	// https://forums.xilinx.com/t5/PCI-Express/DMA-Bridge-Subsystem-for-PCI-Express-v3-0-usage-in-cyclic-mode/m-p/751088#M8456
+	/* ext->writeback = dmam_alloc_coherent(&engine->lro->pci_dev->dev,
                 sizeof(uint64_t)*WZ_DMA_NOFBUFS, &ext->writeback_dma_t,GFP_KERNEL);
     if(!ext->writeback) {
         printk(KERN_ERR "I can't allocate writeback buffer\n");
         return -EFAULT;
 	}
+	*/
     desc = desc_first;
     for (i=0;i<WZ_DMA_NOFBUFS;i++){
-		xdma_desc_set(&desc[i],ext->buf_dma_t[i],ext->writeback_dma_t+i*sizeof(uint64_t),WZ_DMA_BUFLEN,0);
+		xdma_desc_set(&desc[i],ext->buf_dma_t[i],desc_first_dma_t+i*sizeof(struct xdma_desc),WZ_DMA_BUFLEN,0);
 		control = 0; //XDMA_DESC_EOP;
 		//control |= XDMA_DESC_COMPLETED;
 		xdma_desc_control(&desc[i], control);
