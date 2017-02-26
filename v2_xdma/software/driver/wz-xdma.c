@@ -256,6 +256,9 @@ static int ioctl_do_wz_confirm(struct xdma_engine *engine, unsigned long arg)
 	//Confirm descriptors by rewriting info overwritten by writeback
 	i=db_conf.first_desc;
 	while(true) {
+		//Ensure, that the buffer is synchronized for device
+		dma_sync_single_range_for_device(&engine->lro->pci_dev->dev, 
+			ext->buf_dma_t[i],0,WZ_DMA_BUFLEN,DMA_FROM_DEVICE);
 		//Restore the descriptor so, that the control word with MAGIC is written as the last!
 		ext->transfer->desc_virt[i].bytes = ext->desc_copy[i].bytes;
 		mb();
@@ -349,6 +352,9 @@ static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
 			ext->block_scanned_desc = check_desc;
 			break; 
 		}
+		//Ensure, that the buffer is synchronized for CPU
+		dma_sync_single_range_for_cpu(&engine->lro->pci_dev->dev, 
+			ext->buf_dma_t[check_desc],0,WZ_DMA_BUFLEN,DMA_FROM_DEVICE);
 		//Check if EOP is set in this descriptor
 		if( cur_res->status & 1 ) {
 			//This is the last packet in the block!
