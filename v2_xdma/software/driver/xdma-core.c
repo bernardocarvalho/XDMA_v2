@@ -3836,6 +3836,9 @@ static long char_sgdma_ioctl(struct file *file, unsigned int cmd,
     case IOCTL_XDMA_WZ_FREE_BUFFERS:
         rc = ioctl_do_wz_free_buffers(engine, arg);
         break;
+    case IOCTL_XDMA_WZ_CONFIRM:
+        rc = ioctl_do_wz_confirm(engine, arg);
+        break;
 	default:
 		dbg_perf("Unsupported operation\n");
 		rc = -EINVAL;

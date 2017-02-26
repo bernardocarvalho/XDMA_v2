@@ -87,6 +87,13 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
 			goto err1;
 		}
     }
+	//Alloc the memory for copy of descriptors
+	ext->desc_copy = (struct xdma_desc *) vmalloc(WZ_DMA_NOFBUFS*sizeof(struct xdma_desc));
+	if(!ext->desc_copy) {
+        printk(KERN_ERR "I can't allocate copies of descriptors\n");
+        res = -ENOMEM;		
+        goto err1;
+	}
     //Here we also allocate kfifo - very pesimistic variant - number
     //of entries equal to number of buffers...
     spin_lock_init(&ext->kfifo_lock);
@@ -106,6 +113,10 @@ err1:
 			ext->buf_addr[i] = NULL;
        }
      }
+     if(ext->desc_copy) {
+		 vfree(ext->desc_copy);
+		 ext->desc_copy = NULL;
+	 }
      ext->buf_ready = 0;
      return res;
 }
@@ -125,6 +136,10 @@ static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long ar
     kfifo_free(ext->kfifo);
     ext->kfifo = NULL;
     ext->buf_ready = 0;
+    if(ext->desc_copy) {
+		vfree(ext->desc_copy);
+		ext->desc_copy = NULL;
+	}
   	printk(KERN_INFO "All buffers freed\n");
   	return 0;
 }
@@ -150,14 +165,14 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
     ext = &engine->wz_ext;
 	if(! ext->buf_ready) {
         printk(KERN_ERR "I can't start transfer if buffers are not allocated\n");
-        return -EFAULT;
+        return -EINVAL;
 	}
     //First build the XDMA transfer descriptors
     desc_first = xdma_desc_alloc(engine->lro->pci_dev,WZ_DMA_NOFBUFS,
 			&desc_first_dma_t, &desc_last);
 	if(!desc_first) {
         printk(KERN_ERR "I can't allocate descriptors\n");
-        return -EFAULT;
+        return -ENOMEM;
 	}
     #ifdef WZ_TRANSFER_CYCLIC
 	//Later we will need to make the transfer cyclic, but now it is commented out.
@@ -181,7 +196,11 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 		control = 0; //XDMA_DESC_EOP;
 		//control |= XDMA_DESC_COMPLETED;
 		xdma_desc_control(&desc[i], control);
+		//Copy the descriptor, so that it can be restored after writeback!
+		memcpy(&ext->desc_copy[i],&desc[i],sizeof(struct xdma_desc));
 	}
+	//Now we should prepare a copy of descriptors (as writeback destroys them!)
+	
     //Set STOP flag in the last descriptor
     //xdma_desc_control_set(&desc[WZ_DMA_NOFBUFS-1],XDMA_DESC_STOPPED);
 	printk(KERN_INFO "Descriptors filled\n");
@@ -213,6 +232,40 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
     //engine_start(engine);
     return 0;
 };
+
+static int ioctl_do_wz_confirm(struct xdma_engine *engine, unsigned long arg)
+{
+    struct wz_xdma_engine_ext * ext;
+	struct wz_xdma_data_block_confirm db_conf;
+	int res;
+	int i;
+    ext = &engine->wz_ext;
+	res = copy_from_user(&db_conf,(void __user *) arg,sizeof(struct wz_xdma_data_block_confirm));
+	if(res) {
+		printk(KERN_ERR "Couldn't copy the confirmation descriptor\n");
+		return -EINVAL;
+	}
+	//Check if the numbers are reasonable
+	if((db_conf.first_desc < 0) ||
+		(db_conf.first_desc >= WZ_DMA_NOFBUFS) ||
+		(db_conf.last_desc < 0) ||
+		(db_conf.last_desc >= WZ_DMA_NOFBUFS)) {
+			printk(KERN_ERR "Incorrect buffer numbers in the confirmation description: first:%d last:%d should be between 0 and %d",
+			db_conf.first_desc, db_conf.last_desc, WZ_DMA_NOFBUFS);
+		}
+	//Confirm descriptors by rewriting info overwritten by writeback
+	i=db_conf.first_desc;
+	while(true) {
+		//Restore the descriptor so, that the control word with MAGIC is written as the last!
+		ext->transfer->desc_virt[i].bytes = ext->desc_copy[i].bytes;
+		mb();
+		ext->transfer->desc_virt[i].control = ext->desc_copy[i].control;
+		mb();
+		if (i == db_conf.last_desc) break;
+		i = (i+1) & (WZ_DMA_NOFBUFS - 1);
+	} 
+	return 0;
+}
 
 static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
 {

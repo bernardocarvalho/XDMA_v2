@@ -4,10 +4,10 @@
  * Wojciech M. Zabolotny <wzab@ise.pw.edu.pl>
  */
 
-//Size of a single DMA buffer
+//Size of a single DMA buffer (MUST BE A POWER OF 2!)
 #define WZ_DMA_BUFLEN (4*1024*1024)
-//Number of allocated DMA buffers
-#define WZ_DMA_NOFBUFS 10
+//Number of allocated DMA buffers (MUST BE A POWER OF 2!)
+#define WZ_DMA_NOFBUFS 32
 //1024
 #include <linux/kfifo.h>
 struct xdma_engine;
@@ -19,6 +19,7 @@ struct wz_xdma_engine_ext{
     uint64_t * writeback;
     dma_addr_t writeback_dma_t;
     struct xdma_transfer *transfer;
+    struct xdma_desc * desc_copy;
     uint8_t buf_ready;
     //Fields used to keep track of the filled blocks
     int eop_count;
