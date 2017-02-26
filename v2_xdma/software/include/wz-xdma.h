@@ -9,7 +9,7 @@
 //Number of allocated DMA buffers
 #define WZ_DMA_NOFBUFS 10
 //1024
-
+#include <linux/kfifo.h>
 struct xdma_engine;
 
 struct wz_xdma_engine_ext{
@@ -25,6 +25,9 @@ struct wz_xdma_engine_ext{
     int desc_head; //The descriptor that is being filled with the data
     int desc_tail; //The last descriptor that has been freed for transmission
     int block_first_desc;
+    int block_scanned_desc;
+    spinlock_t kfifo_lock;
+    struct kfifo * kfifo;
 };
 
 //Structures used to notify the application about the received block of data

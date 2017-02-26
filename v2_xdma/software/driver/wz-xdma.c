@@ -73,6 +73,7 @@ static int char_sgdma_wz_mmap(struct file *file, struct vm_area_struct *vma)
 static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long arg) 
 {
     int i;
+	int res=0;
     struct wz_xdma_engine_ext * ext;
     ext = &engine->wz_ext;
     //We allocate the buffers using dmam_alloc_noncoherent, so the user space
@@ -82,18 +83,31 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
                 WZ_DMA_BUFLEN, &ext->buf_dma_t[i],GFP_USER);
 				printk(KERN_INFO "Allocated buffer: virt=%llx, dma=%llx\n",(u64) ext->buf_addr[i],(u64) ext->buf_dma_t[i]);                
         if(ext->buf_addr[i] == NULL) {
-            int j;
-            //Free already allocated buffers
-            for(j=0;j<i;j++) {
-                dma_free_noncoherent(&engine->lro->pci_dev->dev,
-                WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);
-            }
-            ext->buf_ready = 0;
-            return -ENOMEM;
-        }
+			res = -ENOMEM;
+			goto err1;
+		}
     }
+    //Here we also allocate kfifo - very pesimistic variant - number
+    //of entries equal to number of buffers...
+    spin_lock_init(&ext->kfifo_lock);
+    ext->kfifo = kfifo_alloc(WZ_DMA_NOFBUFS*sizeof(struct wz_xdma_data_block_desc), GFP_KERNEL, &ext->kfifo_lock);
+	if(IS_ERR(ext->kfifo)) {
+		res = PTR_ERR(ext->kfifo);
+		goto err1;
+	}
     ext->buf_ready = 1;
     return 0;
+err1:
+    //Free already allocated buffers
+    for(i=0;i<WZ_DMA_NOFBUFS;i++) {
+		if(ext->buf_addr[i]) {
+			dma_free_noncoherent(&engine->lro->pci_dev->dev,
+				WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);
+			ext->buf_addr[i] = NULL;
+       }
+     }
+     ext->buf_ready = 0;
+     return res;
 }
 
 static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long arg) 
@@ -108,6 +122,8 @@ static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long ar
 			WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);        
 		}
     }
+    kfifo_free(ext->kfifo);
+    ext->kfifo = NULL;
     ext->buf_ready = 0;
   	printk(KERN_INFO "All buffers freed\n");
   	return 0;
@@ -201,7 +217,6 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
 {
     struct wz_xdma_engine_ext * ext;
-    struct xdma_desc * desc;
     ext = &engine->wz_ext;
     //Stop the transfer (?Should it be done?)
     //xdma_engine_stop(engine);
@@ -217,60 +232,98 @@ static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
     return 0;
 };
 
-//Please note, that we may be either in the middle of the block assembly,
-//or waiting on the first block!
-//getbuf waits, until it receives EOP.
+//Now, after remake of cyclic interrupt, the getbuf function gets really simple
+//We only check if there is a new block descriptor in the FIFO, and if there is
+//we return it to the application.
+
 static int ioctl_do_wz_getbuf(struct xdma_engine *engine, unsigned long arg)
 {
-	struct wz_xdma_data_block_desc db_desc;
-	int check_desc;
 	int res;
-	db_desc.first_desc = -1;
-	res = wait_event_interruptible(&engine->rx_transfer_cyclic->wq, engine->wz_ext->eop_count != 0);
+	struct wz_xdma_data_block_desc db_desc;
+    struct wz_xdma_engine_ext * ext;
+    ext = &engine->wz_ext;
+    //To recover blocks, that were not reported due to FIFO overload,
+    //it would be good to rescan the descriptors here by calling the:
+    //wz_engine_service_cyclic_interrupt
+    //However, it is not clear if it can be called outside the 
+    //interrupt context...
+	res = wait_event_interruptible(engine->rx_transfer_cyclic->wq, 
+		kfifo_len(ext->kfifo) >= sizeof(struct wz_xdma_data_block_desc));
 	if(res<0) return res;
-	//Now we can be sure, that there is buffer ready to service			
-	check_desc = engine->wz_ext->desc_head;
-	while(true) {
-		struct xdma_desc * cur_desc = &engine->wz_ext->transfer->desc_virt[check_desc];
-		struct xdma_result * cur_res = (struct xdma_desc *) cur_desc;
-		//Sleep, until the current head descriptor is not completed
-		
-		if((cur_desc->status >> 16) & 0xffff !=  C2H_WB) {
-			//It should never happen, as we are promised to have at least one EOP!
-			printk(KERN_ERR "data corruption? No EOP in getbuf!\n");
-			return -EINVAL;
-		}
-		//This is a serviced descriptor.
-		if (db_desc.first_desc == -1)
-		   db_desc.first_desc = cur_desc;
-		//Check if EOP is in this descriptor
-		if( cur_res->status & 1 ) {
-			//This is the last packet in the block!
-			db_desc.last_desc = cur_desc;
-			db_desc.last_len = cur_res.length;
-			//Try to copy result to the userspace
-			res = copy_to_user((void __user *)arg, db_desc,
-						sizeof(struct wz_xdma_data_block_desc));
-		    
-			//Wake up readers!
-		}
-		
+	//Now we can be sure, that there is buffer ready to service
+    res = kfifo_get(ext->kfifo,(unsigned char *)&db_desc, sizeof(struct wz_xdma_data_block_desc));
+    if (res < sizeof(struct wz_xdma_data_block_desc)) {
+		printk(KERN_ERR "It should never happen! FIFO corruption?");
+		return -EINVAL;
 	}
-
-	return -EINVAL;
+	res = copy_to_user((void __user *)arg, &db_desc,
+			sizeof(struct wz_xdma_data_block_desc));
+	if (res) {
+		printk(KERN_ERR "Error copying result to user\n");
+		return -EINVAL;
+		}
+	return 0;
 };
 // No !!! The above design is wrong!!! I don't want to traverse the descriptors' list twice!
 // Once, counting the EOPs, and the second time, assembling the blocks!
+// Therefore, assembling of blocks is moved to the service interrupt.
+// Results are stored in FIFO (problematic, because 2.6.32 still requires the old
+// and unconvenient FIFO interface)
+
+// If the KFIFO is filled, it would be good to rescan the received buffers
+// even if no new interrupt is received. Is it possible to call the function below
+// from the getbuf???
 
 //The function below is called after the interupt
 static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
 {
-	
+    struct wz_xdma_engine_ext * ext;
+	struct wz_xdma_data_block_desc db_desc;
+	int check_desc;
+	int res;
 	BUG_ON(!engine);
 	BUG_ON(engine->magic != MAGIC_ENGINE);
-
-	wake_up_interruptible(&engine->rx_transfer_cyclic->wq);
-
+    ext = &engine->wz_ext;
+    //We start scanning from the last scanned descriptor
+	check_desc = ext->block_scanned_desc;
+	while(true) {
+		struct xdma_desc * cur_desc;
+		struct xdma_result * cur_res;
+		cur_desc = &ext->transfer->desc_virt[check_desc];
+		cur_res = (struct xdma_result *) cur_desc;
+		if(((cur_res->status >> 16) & 0xffff) !=  C2H_WB) {
+			//All received descriptors are processed
+			ext->block_scanned_desc = check_desc;
+			break; 
+		}
+		//Check if EOP is set in this descriptor
+		if( cur_res->status & 1 ) {
+			//This is the last packet in the block!
+			db_desc.first_desc = ext->block_first_desc;
+			db_desc.last_desc = check_desc;
+			db_desc.last_len = cur_res->length;
+			//Copy it to the FIFO if there is enough space
+			if((ext->kfifo->size - kfifo_len(ext->kfifo)) >= 
+			   sizeof(struct wz_xdma_data_block_desc)) {
+			      res = kfifo_put(ext->kfifo,(const unsigned char *) &db_desc,
+						sizeof(struct wz_xdma_data_block_desc));
+				  //Block reported, shift the pointer to the first buffer of assembled block
+				  check_desc = (check_desc + 1) & (WZ_DMA_NOFBUFS - 1);
+				  ext->block_first_desc = check_desc; //The next block MUST start in the next descriptor!
+				  ext->block_scanned_desc = check_desc;
+			      //Wake up readers!
+				  wake_up_interruptible(&engine->rx_transfer_cyclic->wq);
+			} else {
+					// The block has been assembled, but there is no free space in FIFO
+					// we have to postpone scanning and repeat it next time (may be the FIFO
+					// will be emptied?)
+					break;
+			}
+		} else {
+			//Only shift the pointer to the scanned descriptor
+			check_desc = (check_desc + 1) & (WZ_DMA_NOFBUFS - 1);
+		}
+	}
 	/* engine was running but is no longer busy? */
 	if ((engine->running) && !(engine->status & XDMA_STAT_BUSY)) {
 		/* transfers on queue? */
@@ -279,7 +332,6 @@ static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
 
 		engine_service_shutdown(engine);
 	}
-
 	return 0;
 }
 
