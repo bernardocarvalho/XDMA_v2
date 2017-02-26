@@ -6,7 +6,7 @@
 // TODO: Windows build support
 #include <linux/ioctl.h>
 #endif
-
+#include <wz-xdma-ioctl.h>
 /* Use 'x' as magic number */
 #define XDMA_IOC_MAGIC	'x'
 /* XL OpenCL X->58(ASCII), L->6C(ASCII), O->0 C->C L->6C(ASCII); */

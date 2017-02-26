@@ -395,6 +395,6 @@ static void wz_engine_destroy(struct xdma_engine *engine)
 	//be called even when the file is already closed!
 	//If it is not a true any more, the handlers must be split between the file dependend part 
 	//and the separate clean-up function that can be called both - from the ioctl and here.
-	ioctl_do_wzstop(engine, 0L);
+	ioctl_do_wz_stop(engine, 0L);
 	ioctl_do_wz_free_buffers(engine,0L);
 }
