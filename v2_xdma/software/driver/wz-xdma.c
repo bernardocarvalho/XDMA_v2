@@ -261,6 +261,12 @@ static int ioctl_do_wz_confirm(struct xdma_engine *engine, unsigned long arg)
 			ext->buf_dma_t[i],0,WZ_DMA_BUFLEN,DMA_FROM_DEVICE);
 		//Restore the descriptor so, that the control word with MAGIC is written as the last!
 		ext->transfer->desc_virt[i].bytes = ext->desc_copy[i].bytes;
+		ext->transfer->desc_virt[i].src_addr_lo = ext->desc_copy[i].src_addr_lo;
+		ext->transfer->desc_virt[i].src_addr_hi = ext->desc_copy[i].src_addr_hi;
+		ext->transfer->desc_virt[i].dst_addr_lo = ext->desc_copy[i].dst_addr_lo;
+		ext->transfer->desc_virt[i].dst_addr_hi = ext->desc_copy[i].dst_addr_hi;
+		ext->transfer->desc_virt[i].next_lo = ext->desc_copy[i].next_lo;
+		ext->transfer->desc_virt[i].next_hi = ext->desc_copy[i].next_hi;
 		mb();
 		ext->transfer->desc_virt[i].control = ext->desc_copy[i].control;
 		mb();
