@@ -275,7 +275,7 @@ static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
     //xdma_engine_stop(engine);
     engine_cyclic_stop(engine);
     //Clear the transfer descriptors
-    transfer_destroy(engine->lro, ext->transfer);
+    if(ext->transfer) transfer_destroy(engine->lro, ext->transfer);
     ext->transfer = NULL;
     //Free the writeback buffers - commented out - no writeback buffers now!
     //dmam_free_coherent(&engine->lro->pci_dev->dev,
@@ -391,5 +391,10 @@ static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
 //Function below is called when the XDMA engine is destroyed
 static void wz_engine_destroy(struct xdma_engine *engine)
 {
-	
+	//We rely on the fact, that those particular ioctl handlers do not access the file object, so they may 
+	//be called even when the file is already closed!
+	//If it is not a true any more, the handlers must be split between the file dependend part 
+	//and the separate clean-up function that can be called both - from the ioctl and here.
+	ioctl_do_wzstop(engine, 0L);
+	ioctl_do_wz_free_buffers(engine,0L);
 }
