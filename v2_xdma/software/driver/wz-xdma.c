@@ -277,11 +277,11 @@ static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
     //Clear the transfer descriptors
     transfer_destroy(engine->lro, ext->transfer);
     ext->transfer = NULL;
-    //Free the writeback buffers
-    dmam_free_coherent(&engine->lro->pci_dev->dev,
-		sizeof(uint64_t)*WZ_DMA_NOFBUFS, ext->writeback, ext->writeback_dma_t);
-	ext->writeback = NULL;
-	ext->writeback_dma_t = 0;
+    //Free the writeback buffers - commented out - no writeback buffers now!
+    //dmam_free_coherent(&engine->lro->pci_dev->dev,
+	//	sizeof(uint64_t)*WZ_DMA_NOFBUFS, ext->writeback, ext->writeback_dma_t);
+	//ext->writeback = NULL;
+	//ext->writeback_dma_t = 0;
     return 0;
 };
 
@@ -388,3 +388,8 @@ static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
 	return 0;
 }
 
+//Function below is called when the XDMA engine is destroyed
+static void wz_engine_destroy(struct xdma_engine *engine)
+{
+	
+}
