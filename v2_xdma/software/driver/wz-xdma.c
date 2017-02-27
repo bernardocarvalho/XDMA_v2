@@ -279,13 +279,26 @@ static int ioctl_do_wz_confirm(struct xdma_engine *engine, unsigned long arg)
 static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
 {
     struct wz_xdma_engine_ext * ext;
+    int res;
     ext = &engine->wz_ext;
     //Stop the transfer (?Should it be done?)
     //xdma_engine_stop(engine);
     engine_cyclic_stop(engine);
+    //wait until engine stops
+    res = wait_event_interruptible(engine->shutdown_wq, !engine->running);
+    if (res) {
+		printk(KERN_ERR "wz_stop: wait_event_interruptible=%d\n", res);
+		return res;
+	}
+	if (engine->running) {
+		printk(KERN_ERR "wz_stop: engine still running?!\n");
+		return -EINVAL;
+	}
     //Clear the transfer descriptors
+    spin_lock(&engine->lock);
     if(ext->transfer) transfer_destroy(engine->lro, ext->transfer);
     ext->transfer = NULL;
+    spin_unlock(&engine->lock);
     //Free the writeback buffers - commented out - no writeback buffers now!
     //dmam_free_coherent(&engine->lro->pci_dev->dev,
 	//	sizeof(uint64_t)*WZ_DMA_NOFBUFS, ext->writeback, ext->writeback_dma_t);
