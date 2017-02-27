@@ -283,7 +283,7 @@ static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
     ext = &engine->wz_ext;
     //Stop the transfer (?Should it be done?)
     //xdma_engine_stop(engine);
-    spin_lock(&engine_lock);
+    spin_lock(&engine->lock); //Sources say that it should be called with lock taken
     engine_cyclic_stop(engine);
     spin_unlock(&engine->lock);
     //wait until engine stops
