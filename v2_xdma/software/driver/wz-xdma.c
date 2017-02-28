@@ -76,6 +76,7 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
 	int res=0;
     struct wz_xdma_engine_ext * ext;
     ext = &engine->wz_ext;
+    init_waitqueue_head(&ext->wq);
     //We allocate the buffers using dmam_alloc_noncoherent, so the user space
     //application may use cache.
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {
@@ -324,7 +325,7 @@ static int ioctl_do_wz_getbuf(struct xdma_engine *engine, unsigned long arg)
     //wz_engine_service_cyclic_interrupt
     //However, it is not clear if it can be called outside the 
     //interrupt context...
-	res = wait_event_interruptible(engine->rx_transfer_cyclic->wq, 
+	res = wait_event_interruptible(ext->getbuf_wq, 
 		kfifo_len(ext->kfifo) >= sizeof(struct wz_xdma_data_block_desc));
 	if(res<0) return res;
 	//Now we can be sure, that there is buffer ready to service
@@ -392,7 +393,7 @@ static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
 				  ext->block_first_desc = check_desc; //The next block MUST start in the next descriptor!
 				  ext->block_scanned_desc = check_desc;
 			      //Wake up readers!
-				  wake_up_interruptible(&engine->rx_transfer_cyclic->wq);
+				  wake_up_interruptible(&ext->getbuf_wq);
 			} else {
 					// The block has been assembled, but there is no free space in FIFO
 					// we have to postpone scanning and repeat it next time (may be the FIFO
