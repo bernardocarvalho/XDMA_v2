@@ -1456,7 +1456,8 @@ static void engine_service_work(struct work_struct *work)
 	spin_lock(&engine->lock);
 
 	/* C2H streaming? */
-	if (engine->rx_transfer_cyclic) {
+//	if (engine->rx_transfer_cyclic) {
+	if (true) { //WZab enforce cyclic operation!
 		dbg_tfr("engine_service_cyclic() for %s engine %p\n",
 			engine->name, engine);
 		engine_service_cyclic(engine);
