@@ -194,7 +194,7 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
     for (i=0;i<WZ_DMA_NOFBUFS;i++){
 		xdma_desc_set(&desc[i],ext->buf_dma_t[i],desc_first_dma_t+i*sizeof(struct xdma_desc),WZ_DMA_BUFLEN,0);
 		control = 0; //XDMA_DESC_EOP;
-		//control |= XDMA_DESC_COMPLETED;
+		control |= XDMA_DESC_COMPLETED;
 		xdma_desc_control(&desc[i], control);
 		//Copy the descriptor, so that it can be restored after writeback!
 		memcpy(&ext->desc_copy[i],&desc[i],sizeof(struct xdma_desc));
