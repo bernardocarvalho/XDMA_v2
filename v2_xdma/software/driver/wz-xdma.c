@@ -382,6 +382,7 @@ static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
 	int res;
 	BUG_ON(!engine);
 	BUG_ON(engine->magic != MAGIC_ENGINE);
+    engine_status_read(engine,1);
     ext = &engine->wz_ext;
     //We start scanning from the last scanned descriptor
 	check_desc = ext->block_scanned_desc;
