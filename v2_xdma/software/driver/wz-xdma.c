@@ -352,6 +352,27 @@ static int ioctl_do_wz_getbuf(struct xdma_engine *engine, unsigned long arg)
 // even if no new interrupt is received. Is it possible to call the function below
 // from the getbuf???
 
+//The function below is a modified copy of engine_transfer_dequeue
+//(reference to rx_transfer_cyclic is removed)
+static void wz_engine_transfer_dequeue(struct xdma_engine *engine)
+{
+    struct wz_xdma_engine_ext * ext;
+	struct xdma_transfer *transfer;
+
+	BUG_ON(!engine);
+    ext = &engine->wz_ext;
+
+	/* pick first transfer on the queue (was submitted to the engine) */
+	transfer = list_entry(engine->transfer_list.next, struct xdma_transfer,
+		entry);
+	BUG_ON(!transfer);
+	BUG_ON(transfer != ext->transfer);
+	dbg_tfr("%s engine completed cyclic transfer 0x%p (%d desc).\n",
+		engine->name, transfer, transfer->desc_num);
+	/* remove completed transfer from list */
+	list_del(engine->transfer_list.next);
+}
+
 //The function below is called after the interupt
 static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
 {
@@ -409,7 +430,7 @@ static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
 	if ((engine->running) && !(engine->status & XDMA_STAT_BUSY)) {
 		/* transfers on queue? */
 		if (!list_empty(&engine->transfer_list))
-			engine_transfer_dequeue(engine);
+			wz_engine_transfer_dequeue(engine);
 
 		engine_service_shutdown(engine);
 	}
