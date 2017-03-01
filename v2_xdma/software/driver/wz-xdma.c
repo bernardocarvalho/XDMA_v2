@@ -76,7 +76,7 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
 	int res=0;
     struct wz_xdma_engine_ext * ext;
     ext = &engine->wz_ext;
-    init_waitqueue_head(&ext->wq);
+    init_waitqueue_head(&ext->getbuf_wq);
     //We allocate the buffers using dmam_alloc_noncoherent, so the user space
     //application may use cache.
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {

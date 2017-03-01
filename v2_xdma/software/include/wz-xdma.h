@@ -29,6 +29,6 @@ struct wz_xdma_engine_ext{
     int block_scanned_desc;
     spinlock_t kfifo_lock;
     struct kfifo * kfifo;
-    wait_queue_head_t wq;
+    wait_queue_head_t getbuf_wq;
 };
 
