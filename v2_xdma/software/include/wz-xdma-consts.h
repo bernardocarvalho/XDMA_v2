@@ -3,6 +3,6 @@
 //Size of a single DMA buffer (MUST BE A POWER OF 2!)
 #define WZ_DMA_BUFLEN (4*1024*1024)
 //Number of allocated DMA buffers (MUST BE A POWER OF 2!)
-#define WZ_DMA_NOFBUFS 32
+#define WZ_DMA_NOFBUFS 1024
 //1024
 #endif

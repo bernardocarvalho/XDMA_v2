@@ -2412,9 +2412,6 @@ static void engine_destroy(struct xdma_dev *lro, struct xdma_engine *engine)
 	if (poll_mode)
 		engine_writeback_teardown(engine);
 
-	/* @@@ WZab: here I need to add cleaning up my extensions to the engine */
-	wz_engine_destroy(engine);
-	
 	/* Release memory for the engine */
 	kfree(engine);
 
@@ -4191,6 +4188,10 @@ static int char_sgdma_close(struct inode *inode, struct file *file)
 	if (engine->streaming && !engine->dir_to_dev)
 		rc = cyclic_transfer_teardown(engine);
     */
+    /* @@@ WZab: here I need to add cleaning up my extensions to the engine */
+	wz_engine_cleanup(engine);
+	
+
 	return rc;
 }
 

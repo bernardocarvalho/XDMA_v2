@@ -35,7 +35,7 @@
 /* SECTION: Preprocessor switches */
 
 /* Switch debug printing on/off */
-#define XDMA_DEBUG 1
+#define XDMA_DEBUG 0
 
 /* Switch to enable/disable SD Accel extensions */
 #define SD_ACCEL 0
