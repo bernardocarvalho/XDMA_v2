@@ -4334,8 +4334,8 @@ static int set_dma_mask(struct pci_dev *pdev)
 		dbg_init("pci_set_dma_mask()\n");
 		/* use 64-bit DMA */
 		dbg_init("Using a 64-bit DMA mask.\n");
-		/* use 64-bit DMA for descriptors */ //Changed by WZab!!!
-		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
+		/* use 32-bit DMA for descriptors */ 
+		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
 		/* use 64-bit DMA, 32-bit for consistent */
 	} else if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(32))) {
 		dbg_init("Could not set 64-bit DMA mask.\n");
