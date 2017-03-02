@@ -10,6 +10,9 @@ f=open("/dev/wz-xdma0_c2h_0","rw")
 #How to create ioctl codes.?
 #I can use f.fileno() or f (fileno will be called transparrently)
 #Allocate buffers
+#Free buffers
+fcntl.ioctl(f,ord("q")<<8 | 10, 0)
+#Allocate buffers
 fcntl.ioctl(f,ord("q")<<8 | 7, 0)
 #fcntl.ioctl(f,ord("q")<<8 | 11, 0)
 m=mmap.mmap(f.fileno(),10*1024*1024,mmap.MAP_SHARED,mmap.PROT_READ,0)

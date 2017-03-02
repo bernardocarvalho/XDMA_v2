@@ -2412,9 +2412,6 @@ static void engine_destroy(struct xdma_dev *lro, struct xdma_engine *engine)
 	if (poll_mode)
 		engine_writeback_teardown(engine);
 
-	/* @@@ WZab: here I need to add cleaning up my extensions to the engine */
-	wz_engine_destroy(engine);
-	
 	/* Release memory for the engine */
 	kfree(engine);
 
@@ -4191,6 +4188,10 @@ static int char_sgdma_close(struct inode *inode, struct file *file)
 	if (engine->streaming && !engine->dir_to_dev)
 		rc = cyclic_transfer_teardown(engine);
     */
+    /* @@@ WZab: here I need to add cleaning up my extensions to the engine */
+	wz_engine_cleanup(engine);
+	
+
 	return rc;
 }
 
@@ -4333,8 +4334,8 @@ static int set_dma_mask(struct pci_dev *pdev)
 		dbg_init("pci_set_dma_mask()\n");
 		/* use 64-bit DMA */
 		dbg_init("Using a 64-bit DMA mask.\n");
-		/* use 32-bit DMA for descriptors */
-		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+		/* use 64-bit DMA for descriptors */ //Changed by WZab!!!
+		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
 		/* use 64-bit DMA, 32-bit for consistent */
 	} else if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(32))) {
 		dbg_init("Could not set 64-bit DMA mask.\n");

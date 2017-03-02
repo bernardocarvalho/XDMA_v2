@@ -1,3 +1,6 @@
+#include <wz-xdma-consts.h>
+#ifndef WZ_XDMA_IOCTL_H
+#define WZ_XDMA_IOCTL_H 1
 //Structures used to notify the application about the received block of data
 //The block always starts at the first descriptor, and may and in the middle 
 //of the last descriptor. Hence the structure describing the block consists
@@ -24,3 +27,4 @@ struct wz_xdma_data_block_confirm {
 //memory area, maybe we can rely on the address of the currently 
 //processed descriptor?
 //To be decided soon!
+#endif

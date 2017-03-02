@@ -134,8 +134,10 @@ static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long ar
 			WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);        
 		}
     }
-    kfifo_free(ext->kfifo);
-    ext->kfifo = NULL;
+    if(ext->kfifo) {
+		kfifo_free(ext->kfifo);
+     ext->kfifo = NULL;
+	}	
     ext->buf_ready = 0;
     if(ext->desc_copy) {
 		vfree(ext->desc_copy);
@@ -326,8 +328,10 @@ static int ioctl_do_wz_getbuf(struct xdma_engine *engine, unsigned long arg)
     //However, it is not clear if it can be called outside the 
     //interrupt context...
 	res = wait_event_interruptible(ext->getbuf_wq, 
-		kfifo_len(ext->kfifo) >= sizeof(struct wz_xdma_data_block_desc));
+		(kfifo_len(ext->kfifo) >= sizeof(struct wz_xdma_data_block_desc))
+		|| !engine->running);
 	if(res<0) return res;
+	if(!engine->running) return -EIO;
 	//Now we can be sure, that there is buffer ready to service
     res = kfifo_get(ext->kfifo,(unsigned char *)&db_desc, sizeof(struct wz_xdma_data_block_desc));
     if (res < sizeof(struct wz_xdma_data_block_desc)) {
@@ -434,12 +438,13 @@ static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
 			wz_engine_transfer_dequeue(engine);
 
 		engine_service_shutdown(engine);
+		wake_up_interruptible(&ext->getbuf_wq); //Last chance to wakeup readers!
 	}
 	return 0;
 }
 
-//Function below is called when the XDMA engine is destroyed
-static void wz_engine_destroy(struct xdma_engine *engine)
+//Function below is called when the XDMA engine is released
+static void wz_engine_cleanup(struct xdma_engine *engine)
 {
 	//We rely on the fact, that those particular ioctl handlers do not access the file object, so they may 
 	//be called even when the file is already closed!

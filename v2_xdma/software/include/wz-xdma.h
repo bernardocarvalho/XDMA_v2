@@ -3,13 +3,10 @@
  * All my extensions are published under GPL v2
  * Wojciech M. Zabolotny <wzab@ise.pw.edu.pl>
  */
-
-//Size of a single DMA buffer (MUST BE A POWER OF 2!)
-#define WZ_DMA_BUFLEN (4*1024*1024)
-//Number of allocated DMA buffers (MUST BE A POWER OF 2!)
-#define WZ_DMA_NOFBUFS 32
-//1024
+#ifndef WZ_XDMA_H
+#define WZ_XDMA_H 1
 #include <linux/kfifo.h>
+#include <wz-xdma-consts.h>
 struct xdma_engine;
 
 struct wz_xdma_engine_ext{
@@ -32,3 +29,4 @@ struct wz_xdma_engine_ext{
     wait_queue_head_t getbuf_wq;
 };
 
+#endif
