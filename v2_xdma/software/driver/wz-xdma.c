@@ -79,7 +79,7 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
     init_waitqueue_head(&ext->getbuf_wq);
     //We allocate the buffers using dmam_alloc_noncoherent, so the user space
     //application may use cache.
-	pci_set_consistent_dma_mask(&engine->lro->pci_dev, DMA_BIT_MASK(64));
+	pci_set_consistent_dma_mask(engine->lro->pci_dev, DMA_BIT_MASK(64));
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {
         ext->buf_addr[i] = dmam_alloc_noncoherent(&engine->lro->pci_dev->dev,
                 WZ_DMA_BUFLEN, &ext->buf_dma_t[i],GFP_USER);
@@ -89,7 +89,7 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
 			goto err1;
 		}
     }
-	pci_set_consistent_dma_mask(&engine->lro->pci_dev, DMA_BIT_MASK(32));
+	pci_set_consistent_dma_mask(engine->lro->pci_dev, DMA_BIT_MASK(32));
 	//Alloc the memory for copy of descriptors
 	ext->desc_copy = (struct xdma_desc *) vmalloc(WZ_DMA_NOFBUFS*sizeof(struct xdma_desc));
 	if(!ext->desc_copy) {
@@ -108,7 +108,7 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
     ext->buf_ready = 1;
     return 0;
 err1:
-	pci_set_consistent_dma_mask(&engine->lro->pci_dev, DMA_BIT_MASK(32));
+	pci_set_consistent_dma_mask(engine->lro->pci_dev, DMA_BIT_MASK(32));
     //Free already allocated buffers
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {
 		if(ext->buf_addr[i]) {
