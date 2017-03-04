@@ -183,7 +183,9 @@
           <spirit:configurableElementValue spirit:referenceId="xdma_axilite_slave">false</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="plltype">QPLL1</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="xdma_axi_intf_mm">AXI_Stream</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="xdma_pcie_64bit_en">true</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="cfg_mgmt_if">false</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="axil_master_64bit_en">true</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
       <spirit:componentInstance>

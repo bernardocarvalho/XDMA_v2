@@ -5,6 +5,7 @@
 #include <sys/mman.h>
 #include <stdint.h>
 #include <xdma-ioctl.h>
+#include <time.h>
 //#include <wz-xdma-ioctl.h>
 #include <fcntl.h>
 #define TOT_BUF_LEN ((long) WZ_DMA_BUFLEN * (long) WZ_DMA_NOFBUFS)
@@ -13,7 +14,8 @@ int fc=-1;
 int fm=-1;
 volatile uint32_t * usr_regs = NULL;
 volatile uint64_t * data_buf = NULL;
-
+struct timespec ts;
+double tstart, tcur;
 volatile uint64_t dummy1 = 0;
 
 struct wz_xdma_data_block_desc bdesc;
@@ -83,14 +85,18 @@ int main(int argc, char * argv[])
 		exit(3);
 	}
 	//Start the source
+	
+	clock_gettime(CLOCK_MONOTONIC,&ts);
+	tstart=ts.tv_sec+1.0e-9*ts.tv_nsec;
 	start_source();
 	while(1) {
 			res=ioctl(fm,IOCTL_XDMA_WZ_GETBUF,(long) &bdesc);
 			if(res<0) {
 				perror("I can't get buffer");
+				printf("transmitted: %ld\n",tot_len);
 				exit(4);
 			}
-			bconf.first_desc=bdesc.last_desc;
+			bconf.first_desc=bdesc.first_desc;
 			bconf.last_desc=bdesc.last_desc;
 			tot_len += (WZ_DMA_BUFLEN*((bdesc.last_desc - bdesc.first_desc) % WZ_DMA_NOFBUFS))+bdesc.last_len;
 			res=ioctl(fm,IOCTL_XDMA_WZ_CONFIRM,(long) &bconf);
@@ -98,9 +104,11 @@ int main(int argc, char * argv[])
 				perror("I can't confirm buffer");
 				exit(4);
 			}
-			//if(tot_len > old_tot_len + 10000L) {
-				printf("transmitted: %ld\n",tot_len);
+			if(tot_len > old_tot_len + 100000000L) {
+				clock_gettime(CLOCK_MONOTONIC,&ts);
+				tcur=ts.tv_sec+1.0e-9*ts.tv_nsec;
+				printf("transmitted: %ld time: %g rate: %g\n",tot_len, tcur-tstart, tot_len/(tcur-tstart));
 				old_tot_len = tot_len;
-			//}
+			}
 	}
 }
