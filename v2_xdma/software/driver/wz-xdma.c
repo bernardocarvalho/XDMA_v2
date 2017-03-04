@@ -87,6 +87,9 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
         if(ext->buf_addr[i] == NULL) {
 			res = -ENOMEM;
 			goto err1;
+		//Make buffer ready for filling by the device
+		dma_sync_single_range_for_device(&engine->lro->pci_dev->dev, 
+			ext->buf_dma_t[i],0,WZ_DMA_BUFLEN,DMA_FROM_DEVICE);
 		}
     }
 	//pci_set_consistent_dma_mask(engine->lro->pci_dev, DMA_BIT_MASK(32));
@@ -133,7 +136,7 @@ static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long ar
   	printk(KERN_INFO "Starting to free buffers\n");
     if(ext->buf_ready) {
 		for(i=0;i<WZ_DMA_NOFBUFS;i++) {
-			dma_free_noncoherent(&engine->lro->pci_dev->dev,
+			dmam_free_noncoherent(&engine->lro->pci_dev->dev,
 			WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);        
 		}
     }
@@ -401,6 +404,7 @@ static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
 		cur_desc = &ext->transfer->desc_virt[check_desc];
 		cur_res = (struct xdma_result *) cur_desc;
 		if(((cur_res->status >> 16) & 0xffff) !=  C2H_WB) {
+			//This descriptor does not contain writeback MAGIC
 			//All received descriptors are processed
 			ext->block_scanned_desc = check_desc;
 			break; 
