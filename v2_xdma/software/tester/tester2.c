@@ -13,13 +13,39 @@ int fu=-1;
 int fc=-1;
 int fm=-1;
 volatile uint32_t * usr_regs = NULL;
-volatile uint64_t * data_buf = NULL;
+volatile char * data_buf = NULL;
 struct timespec ts;
 double tstart, tcur;
 volatile uint64_t dummy1 = 0;
 
 struct wz_xdma_data_block_desc bdesc;
 struct wz_xdma_data_block_confirm bconf;
+struct dta_payload {
+	uint32_t dta[8];
+} __attribute__((packed)); 
+
+struct dta_header {
+	uint32_t flags;
+	uint32_t len;
+	uint32_t filler[6];
+} __attribute__((packed)); 
+unsigned int get_step(struct dta_header * pt)
+{
+	return (pt->flags >> 8) & 0xf;
+}
+
+unsigned int get_init(struct dta_header * pt)
+{
+	return pt->flags & 0xff;
+}
+
+unsigned int get_len(struct dta_header * pt)
+{
+	return pt->len;
+}
+
+int first = 1;
+
 int64_t tot_len = 0;
 int64_t old_tot_len = 0;
 
@@ -90,15 +116,51 @@ int main(int argc, char * argv[])
 	tstart=ts.tv_sec+1.0e-9*ts.tv_nsec;
 	start_source();
 	while(1) {
+		int cur_len=0;
 			res=ioctl(fm,IOCTL_XDMA_WZ_GETBUF,(long) &bdesc);
 			if(res<0) {
 				perror("I can't get buffer");
 				printf("transmitted: %ld\n",tot_len);
 				exit(4);
 			}
+			if(first==1) {
+				first = 0;
+				//Ignore the first block, it may be corrupted after the previous run
+			} else {
+				//Check the correctness of the data
+				int dta_index=WZ_DMA_BUFLEN*bdesc.first_desc;
+				struct dta_header * dh = (struct dta_header *) &data_buf[dta_index];
+				int dlen = get_len(dh);
+				int dinit = get_init(dh);
+				int dstep = get_step(dh);
+				int i;
+				int exp_len = dlen * 32;
+				cur_len = (WZ_DMA_BUFLEN*((bdesc.last_desc - bdesc.first_desc) % WZ_DMA_NOFBUFS))+bdesc.last_len;
+				//Check if the cur_len is correct
+				if(cur_len != exp_len) {
+					printf("buffer_nr=%d\n",bdesc.first_desc);
+					printf("dlen = %d\n",dlen);
+					printf("dinit= %d\n",dinit);
+					printf("dstep = %d\n",dstep);
+					printf("exp_len= %d\n",exp_len);
+					printf("cur_len= %d\n",cur_len);
+				}
+				for(i=0;i<dlen;i+=32) {
+					int j;
+					dta_index = ( dta_index + 32 ) & (TOT_BUF_LEN-1);
+					struct dta_payload * dp = (struct dta_payload *) &data_buf[dta_index];
+					for(j=0;j<8;j++) {
+						if(dp->dta[j] != dinit+j) {
+							printf("data error! buffer %d dlen %d index: %d position: %d expexted: %d received: %d\n", bdesc.first_desc, dlen*32, dta_index, j, dinit+j, dp->dta[j]);
+						}
+					}
+					dinit += dstep;
+				}
+				
+			}
 			bconf.first_desc=bdesc.first_desc;
 			bconf.last_desc=bdesc.last_desc;
-			tot_len += (WZ_DMA_BUFLEN*((bdesc.last_desc - bdesc.first_desc) % WZ_DMA_NOFBUFS))+bdesc.last_len;
+			tot_len += cur_len;
 			res=ioctl(fm,IOCTL_XDMA_WZ_CONFIRM,(long) &bconf);
 			if(res<0) {
 				perror("I can't confirm buffer");
