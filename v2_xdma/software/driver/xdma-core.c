@@ -1980,8 +1980,8 @@ static struct xdma_desc *xdma_desc_alloc(struct pci_dev *dev, int number,
 	BUG_ON(number < 1);
 
 	/* allocate a set of cache-coherent contiguous pages */
-	desc_virt = (struct xdma_desc *)pci_alloc_consistent(dev,
-			number * sizeof(struct xdma_desc), desc_bus_p);
+	desc_virt = (struct xdma_desc *)dma_alloc_coherent(&dev->dev,
+			number * sizeof(struct xdma_desc), desc_bus_p, GFP_KERNEL | GFP_DMA32);
 	if (!desc_virt)
 		return NULL;
 	/* get bus address of the first descriptor */
@@ -4335,7 +4335,7 @@ static int set_dma_mask(struct pci_dev *pdev)
 		/* use 64-bit DMA */
 		dbg_init("Using a 64-bit DMA mask.\n");
 		/* use 32-bit DMA for descriptors */ // WZab
-		if(!pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32))) {
+		if(!pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64))) {
 			/* use 64-bit DMA */
 			dbg_init("Using a 64-bit consistent DMA mask.\n");
 		} else {
