@@ -141,20 +141,14 @@ begin  -- architecture rtl
             tvalid               <= '1';
             tlast                <= '0';
             ack_pkt              <= '1';
-            src_state            <= ST_START_PKT;
-          when ST_START_PKT =>
-            if tready = '1' then
-              wrd_count <= 3;
-              s_data    <= to_unsigned(init_data, 256);
-              src_state <= ST_SEND_PKT;
-            end if;
+            src_state            <= ST_SEND_PKT;
           when ST_SEND_PKT =>
             if tready = '1' then
               if wrd_count <= pkt_len then
                 wrd_count <= wrd_count+1;
                 cnt_data  <= cnt_data + pkt_step;
                 for i in 0 to 7 loop
-                  s_data(32*i-1 downto 32*i) <= cnt_data+i;
+                  s_data(32*i+31 downto 32*i) <= cnt_data+i;
                 end loop;  -- i
                 if wrd_count = pkt_len then
                   tlast <= '1';
