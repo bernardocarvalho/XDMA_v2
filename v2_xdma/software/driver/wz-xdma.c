@@ -173,6 +173,8 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
         printk(KERN_ERR "I can't start transfer if buffers are not allocated\n");
         return -EINVAL;
 	}
+	ext->block_first_desc=0;
+	ext->block_scanned_desc=0;
     //First build the XDMA transfer descriptors
     desc_first = xdma_desc_alloc(engine->lro->pci_dev,WZ_DMA_NOFBUFS,
 			&desc_first_dma_t, &desc_last);
