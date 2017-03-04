@@ -112,7 +112,7 @@ err1:
     //Free already allocated buffers
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {
 		if(ext->buf_addr[i]) {
-			dma_free_noncoherent(&engine->lro->pci_dev->dev,
+			dmam_free_noncoherent(&engine->lro->pci_dev->dev,
 				WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);
 			ext->buf_addr[i] = NULL;
        }

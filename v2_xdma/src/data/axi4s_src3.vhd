@@ -6,7 +6,7 @@
 -- Author     : Wojciech M. Zabolotny <wzab01@gmail.com>
 -- Company    : 
 -- Created    : 2016-08-09
--- Last update: 2016-12-11
+-- Last update: 2017-03-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,19 +45,20 @@ entity axi4s_src3 is
 end entity axi4s_src3;
 
 architecture rtl of axi4s_src3 is
-  constant PKT_DEL : integer               := 10;
-  type T_SRC_STATE is (ST_IDLE, ST_START_HEAD, ST_START_PKT, ST_SEND_PKT);
-  signal src_state : T_SRC_STATE           := ST_IDLE;
-  signal pkt_step  : integer               := 0;
-  signal s_data    : unsigned(255 downto 0) := (others => '0');
-  signal old_start : std_logic             := '0';
-  signal wrd_count : integer               := 0;
-  signal pkt_len   : integer               := 0;
-  signal del_cnt   : integer               := 0;
-  signal init_data : integer               := 0;
-  signal shift_reg : std_logic_vector(48 downto 0);
-  signal ack_pkt   : std_logic             := '0';
-  signal start_pkt : std_logic             := '0';
+  constant PKT_DEL   : integer                := 10;
+  type     T_SRC_STATE is (ST_IDLE, ST_START_HEAD, ST_START_PKT, ST_SEND_PKT);
+  signal   src_state : T_SRC_STATE            := ST_IDLE;
+  signal   pkt_step  : integer                := 0;
+  signal   s_data    : unsigned(255 downto 0) := (others => '0');
+  signal   cnt_data  : unsigned(31 downto 0)  := (others => '0');
+  signal   old_start : std_logic              := '0';
+  signal   wrd_count : integer                := 0;
+  signal   pkt_len   : integer                := 0;
+  signal   del_cnt   : integer                := 0;
+  signal   init_data : integer                := 0;
+  signal   shift_reg : std_logic_vector(48 downto 0);
+  signal   ack_pkt   : std_logic              := '0';
+  signal   start_pkt : std_logic              := '0';
 
 
 begin  -- architecture rtl
@@ -131,10 +132,11 @@ begin  -- architecture rtl
               src_state <= ST_START_HEAD;
             end if;
           when ST_START_HEAD =>
-            s_data <= (others => '0');
+            s_data               <= (others => '0');
             s_data(7 downto 0)   <= to_unsigned(init_data, 8);
             s_data(11 downto 8)  <= to_unsigned(pkt_step, 4);
-            s_data(31 downto 12) <= to_unsigned(pkt_len, 31-12+1);
+            s_data(63 downto 32) <= to_unsigned(pkt_len, 32);
+            cnt_data             <= to_unsigned(init_data, 32);
             wrd_count            <= 2;
             tvalid               <= '1';
             tlast                <= '0';
@@ -150,7 +152,10 @@ begin  -- architecture rtl
             if tready = '1' then
               if wrd_count <= pkt_len then
                 wrd_count <= wrd_count+1;
-                s_data    <= s_data + 1; --pkt_step;
+                cnt_data  <= cnt_data + pkt_step;
+                for i in 0 to 7 loop
+                  s_data(32*i-1 downto 32*i) <= cnt_data+i;
+                end loop;  -- i
                 if wrd_count = pkt_len then
                   tlast <= '1';
                 end if;
