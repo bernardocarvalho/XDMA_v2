@@ -6,7 +6,7 @@
  * This file will be included in the original xdma-core.c to make maintenace easier
  */
 #define WZ_TRANSFER_CYCLIC 1
- 
+#include <linux/dma-mapping.h> 
 /* Mapping of the allocated buffers */  
 void swz_mmap_open(struct vm_area_struct *vma)
 {
@@ -20,7 +20,7 @@ static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 {
   long offset;
   struct xdma_char *xchar = NULL;
-  char * buffer = NULL;
+  struct page * buffer = NULL;
   int buf_num = 0;
   xchar = (struct xdma_char *) vma->vm_private_data;
   //Calculate the offset (according to info in 
@@ -84,9 +84,9 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
     ext->buf_page[i] = alloc_pages(GFP_USER, get_order(WZ_DMA_BUFLEN));
     if(ext->buf_page[i]==NULL) {
         res = -ENOMEM;
-        got err1;
+        goto err1;
     }
-    ext->buf_dma_t[i] = dma_map_page(&engine->lro->pci_dev->dev,page_to_phys(ext->buf_page[i]),
+    ext->buf_dma_t[i] = dma_map_page(&engine->lro->pci_dev->dev,ext->buf_page[i],
 					      0,WZ_DMA_BUFLEN, DMA_FROM_DEVICE);
     printk(KERN_INFO "Allocated buffer %d: device=%p, page=%llx, dma=%llx\n", i, &engine->lro->pci_dev->dev, (u64) ext->buf_page[i],(u64) ext->buf_dma_t[i]);                
     if(ext->buf_dma_t[i] == 0) {
@@ -122,8 +122,8 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
   for(i=0;i<WZ_DMA_NOFBUFS;i++) {
     if(ext->buf_dma_t[i]) {
       dma_unmap_page(&engine->lro->pci_dev->dev,
-			    ext->buf_dma_t[i],WZ_DMA_BUFLEN);
-      ext->buf_dma[i] = NULL;
+			    ext->buf_dma_t[i],WZ_DMA_BUFLEN, DMA_FROM_DEVICE);
+      ext->buf_dma_t[i] = 0;
     }
     if(ext->buf_page[i]) {
       __free_pages(ext->buf_page[i],get_order(WZ_DMA_BUFLEN));
@@ -148,8 +148,8 @@ static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long ar
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {
         if(ext->buf_dma_t[i]) {
             dma_unmap_page(&engine->lro->pci_dev->dev,
-                ext->buf_dma_t[i],WZ_DMA_BUFLEN);
-            ext->buf_dma[i] = NULL;
+                ext->buf_dma_t[i],WZ_DMA_BUFLEN, DMA_FROM_DEVICE);
+            ext->buf_dma_t[i] = 0;
         }
         if(ext->buf_page[i]) {
             __free_pages(ext->buf_page[i],get_order(WZ_DMA_BUFLEN));
