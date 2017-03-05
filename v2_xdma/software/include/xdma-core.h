@@ -1,7 +1,7 @@
 // d52cbaca0ef8cf4fd3d6354deb5066970fb6511d02d18d15835e6014ed847fb0
 #ifndef XDMA_CORE_H
 #define XDMA_CORE_H
-#define DEBUG 1
+//#define DEBUG 0
 #include <linux/types.h>
 #include <linux/module.h>
 #include <linux/cdev.h>
@@ -29,9 +29,9 @@
 #include <linux/uio.h>
 /* includes added by WZab */
 #include "wz-xdma.h"
-#define pr_debug(fmt, ...) \
+/* #define pr_debug(fmt, ...) \
        printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-
+*/
 /* SECTION: Preprocessor switches */
 
 /* Switch debug printing on/off */
