@@ -183,7 +183,7 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
         printk(KERN_ERR "I can't allocate descriptors\n");
         return -ENOMEM;
 	}
-    printk(KERN_INFO "Allocated XDMA descriptors at virt: %p, bus:%llu ", desc_first, desc_first_dma_t);
+    printk(KERN_INFO "Allocated XDMA descriptors at virt: %p, bus:%llx ", desc_first, desc_first_dma_t);
     #ifdef WZ_TRANSFER_CYCLIC
 	//Later we will need to make the transfer cyclic, but now it is commented out.
 	xdma_desc_link(desc_last, desc_first, desc_first_dma_t); 
