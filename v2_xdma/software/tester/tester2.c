@@ -97,7 +97,7 @@ int main(int argc, char * argv[])
 		exit(2);		
 	}
 	//Ensure, that all pages are mapped
-	{
+	if(0){
 		int i;
 		for(i=0;i<TOT_BUF_LEN/sizeof(uint64_t);i++)
 			dummy1 += data_buf[i];
@@ -115,7 +115,7 @@ int main(int argc, char * argv[])
 	clock_gettime(CLOCK_MONOTONIC,&ts);
 	tstart=ts.tv_sec+1.0e-9*ts.tv_nsec;
 	start_source();
-	while(1) {
+	while(0) {
 		int cur_len=0;
 			res=ioctl(fm,IOCTL_XDMA_WZ_GETBUF,(long) &bdesc);
 			if(res<0) {
