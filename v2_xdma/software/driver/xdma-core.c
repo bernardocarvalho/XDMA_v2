@@ -306,8 +306,8 @@ static const struct file_operations sg_interrupt_fops = {
 	.unlocked_ioctl = char_sgdma_ioctl,
 	.llseek = char_sgdma_llseek,
 #if !defined(XDMA_NEW_AIO)
-	.aio_read = sg_aio_read,
-	.aio_write = sg_aio_write,
+	//.aio_read = sg_aio_read,
+	//.aio_write = sg_aio_write,
 #endif
 };
 

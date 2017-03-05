@@ -26,8 +26,8 @@ static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
     //Calculate the offset (according to info in 
     // https://lxr.missinglinkelectronics.com/linux+v2.6.32/drivers/gpu/drm/i915/i915_gem.c#L1195
     // it is better not ot use the vmf->pgoff )
-    printk(KERN_INFO "Fault virt: %llx, start of vma: %llx\n", (u64) vmf->virtual_address, (u64) vma->vm_start);
-    offset = (unsigned long)(vmf->virtual_address - vma->vm_start);
+    //printk(KERN_INFO "Fault virt: %llx, start of vma: %llx\n", (u64) vmf->virtual_address, (u64) vma->vm_start);
+    offset = (unsigned long)(vmf->address - vma->vm_start);
     //Calculate the buffer number
     buf_num = offset/WZ_DMA_BUFLEN;
     //Check if the resulting number is not higher than the number of allocated buffers
@@ -39,7 +39,7 @@ static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
     offset = offset - buf_num * WZ_DMA_BUFLEN;
     buffer = xchar->engine->wz_ext.buf_addr[buf_num];
     //Get the pfn of the buffer
-    vm_insert_pfn(vma,(unsigned long)(vmf->virtual_address),virt_to_phys(&buffer[offset]) >> PAGE_SHIFT);         
+    vm_insert_pfn(vma,(unsigned long)(vmf->address),virt_to_phys(&buffer[offset]) >> PAGE_SHIFT);         
     return VM_FAULT_NOPAGE;
 }
  
@@ -61,7 +61,7 @@ static int char_sgdma_wz_mmap(struct file *file, struct vm_area_struct *vma)
         return -EINVAL;    
     }
     vma->vm_ops = &swz_mmap_vm_ops;
-    vma->vm_flags |= VM_IO | VM_RESERVED | VM_CAN_NONLINEAR | VM_PFNMAP;
+    vma->vm_flags |= VM_IO | VM_DONTEXPAND | VM_DONTDUMP | VM_PFNMAP;
     //file->private data contains the pointer to the xdma_char
     vma->vm_private_data = file->private_data;
     swz_mmap_open(vma);
@@ -83,7 +83,7 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {
         ext->buf_addr[i] = dmam_alloc_noncoherent(&engine->lro->pci_dev->dev,
                 WZ_DMA_BUFLEN, &ext->buf_dma_t[i],GFP_USER);
-				printk(KERN_INFO "Allocated buffer: virt=%llx, dma=%llx\n",(u64) ext->buf_addr[i],(u64) ext->buf_dma_t[i]);                
+				printk(KERN_INFO "Allocated buffer %d: device=%p, virt=%llx, dma=%llx\n", i, &engine->lro->pci_dev->dev, (u64) ext->buf_addr[i],(u64) ext->buf_dma_t[i]);                
         if(ext->buf_addr[i] == NULL) {
 			res = -ENOMEM;
 			goto err1;
@@ -102,10 +102,10 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
 	}
     //Here we also allocate kfifo - very pesimistic variant - number
     //of entries equal to number of buffers...
-    spin_lock_init(&ext->kfifo_lock);
-    ext->kfifo = kfifo_alloc(WZ_DMA_NOFBUFS*sizeof(struct wz_xdma_data_block_desc), GFP_KERNEL, &ext->kfifo_lock);
-	if(IS_ERR(ext->kfifo)) {
-		res = PTR_ERR(ext->kfifo);
+    //spin_lock_init(&ext->kfifo_lock);
+    if(kfifo_alloc(&ext->kfifo, WZ_DMA_NOFBUFS, GFP_KERNEL)<0)
+	{
+		res = -ENOMEM;
 		goto err1;
 	}
     ext->buf_ready = 1;
@@ -136,14 +136,12 @@ static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long ar
   	printk(KERN_INFO "Starting to free buffers\n");
     if(ext->buf_ready) {
 		for(i=0;i<WZ_DMA_NOFBUFS;i++) {
+			printk(KERN_INFO "Freeing buffer %d: device=%p, virt=%llx, dma=%llx\n",i, &engine->lro->pci_dev->dev, (u64) ext->buf_addr[i],(u64) ext->buf_dma_t[i]);                			
 			dmam_free_noncoherent(&engine->lro->pci_dev->dev,
 			WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);        
 		}
     }
-    if(ext->kfifo) {
-		kfifo_free(ext->kfifo);
-     ext->kfifo = NULL;
-	}	
+	kfifo_free(&ext->kfifo);
     ext->buf_ready = 0;
     if(ext->desc_copy) {
 		vfree(ext->desc_copy);
@@ -336,17 +334,13 @@ static int ioctl_do_wz_getbuf(struct xdma_engine *engine, unsigned long arg)
     //However, it is not clear if it can be called outside the 
     //interrupt context...
 	res = wait_event_interruptible(ext->getbuf_wq, 
-		(kfifo_len(ext->kfifo) >= sizeof(struct wz_xdma_data_block_desc))
+		(kfifo_len(&ext->kfifo) >= 1)
 		|| !engine->running);
 	if(res<0) return res;
 	if(!engine->running) return -EIO;
 	//Now we can be sure, that there is buffer ready to service
-    res = kfifo_get(ext->kfifo,(unsigned char *)&db_desc, sizeof(struct wz_xdma_data_block_desc));
-    if (res < sizeof(struct wz_xdma_data_block_desc)) {
-		printk(KERN_ERR "It should never happen! FIFO corruption?");
-		return -EINVAL;
-	}
-	res = copy_to_user((void __user *)arg, &db_desc,
+    kfifo_get(&ext->kfifo,&db_desc);
+    res = copy_to_user((void __user *)arg, &db_desc,
 			sizeof(struct wz_xdma_data_block_desc));
 	if (res) {
 		printk(KERN_ERR "Error copying result to user\n");
@@ -419,10 +413,7 @@ static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
 			db_desc.last_desc = check_desc;
 			db_desc.last_len = cur_res->length;
 			//Copy it to the FIFO if there is enough space
-			if((ext->kfifo->size - kfifo_len(ext->kfifo)) >= 
-			   sizeof(struct wz_xdma_data_block_desc)) {
-			      res = kfifo_put(ext->kfifo,(const unsigned char *) &db_desc,
-						sizeof(struct wz_xdma_data_block_desc));
+			if(kfifo_put(&ext->kfifo,db_desc)) {
 				  //Block reported, shift the pointer to the first buffer of assembled block
 				  check_desc = (check_desc + 1) & (WZ_DMA_NOFBUFS - 1);
 				  ext->block_first_desc = check_desc; //The next block MUST start in the next descriptor!
