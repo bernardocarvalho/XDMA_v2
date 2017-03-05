@@ -2059,7 +2059,7 @@ static void xdma_desc_link(struct xdma_desc *first, struct xdma_desc *second,
 		 */
 		first->next_lo = cpu_to_le32(PCI_DMA_L(second_bus));
 		first->next_hi = cpu_to_le32(PCI_DMA_H(second_bus));
-		WARN_ON(first->next_hi);
+		//WARN_ON(first->next_hi); //WZab: Why? It doesn't make sense here!
 		/* no second descriptor given */
 	} else {
 		/* first descriptor is the last */

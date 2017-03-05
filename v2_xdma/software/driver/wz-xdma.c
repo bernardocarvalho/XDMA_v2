@@ -179,11 +179,8 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
 {
   int i;
   struct wz_xdma_engine_ext * ext;
-  struct xdma_desc * desc[WZ_DMA_NOFBUFS];
-  struct xdma_desc * desc_first;
   struct xdma_desc * desc_last;
   uint32_t control;
-  dma_addr_t desc_first_dma_t;
 
   ext = &engine->wz_ext;
   if(! ext->buf_ready) {
@@ -195,25 +192,21 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
   //Build XDMA transfer descriptors in a loop
   for(i=0;i<WZ_DMA_NOFBUFS;i++) {  
      dma_addr_t desc_dma_t;
-     desc[i] = xdma_desc_alloc(engine->lro->pci_dev,1,
-			       &desc_dma_t, &desc_last);
-     if(!desc[i]) {
+     ext->desc[i] = xdma_desc_alloc(engine->lro->pci_dev,1,
+			       &ext->desc_dma[i], &desc_last);
+     if(!ext->desc[i]) {
         printk(KERN_ERR "I can't allocate descriptors\n");
         return -ENOMEM;
      }
-     ext->desc[i]=desc[i];
-     if(i==0) {
-         desc_first = desc[i];
-         desc_first_dma_t = desc_dma_t;
-     } else {
+     if(i>0) {
          //Link the previous descriptor to that one
-         xdma_desc_link(desc[i-1], desc[i], desc_dma_t); 
+         xdma_desc_link(ext->desc[i-1], ext->desc[i], ext->desc_dma[i]); 
      }
   }
-  printk(KERN_INFO "Allocated XDMA descriptors at virt: %p, bus:%llx ", desc_first, desc_first_dma_t);
+  printk(KERN_INFO "Allocated XDMA descriptors at virt: %p, bus:%llx ", ext->desc[0], ext->desc_dma[0]);
 #ifdef WZ_TRANSFER_CYCLIC
   //Later we will need to make the transfer cyclic, but now it is commented out.
-  xdma_desc_link(desc[WZ_DMA_NOFBUFS-1], desc_first, desc_first_dma_t); 
+  xdma_desc_link(ext->desc[WZ_DMA_NOFBUFS-1], ext->desc[0], ext->desc_dma[0]); 
 #endif
   //Fill the descriptors with data of our buffers.
   //Allocation of the writeback buffer is removed!
@@ -228,12 +221,12 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
      }
   */
   for (i=0;i<WZ_DMA_NOFBUFS;i++){
-    xdma_desc_set(&desc[i],ext->buf_dma_t[i],desc_first_dma_t+i*sizeof(struct xdma_desc),WZ_DMA_BUFLEN,0);
+    xdma_desc_set(ext->desc[i],ext->buf_dma_t[i],ext->desc_dma[i],WZ_DMA_BUFLEN,0);
     control = 0; //XDMA_DESC_EOP;
     control |= XDMA_DESC_COMPLETED;
-    xdma_desc_control(&desc[i], control);
+    xdma_desc_control(ext->desc[i], control);
     //Copy the descriptor, so that it can be restored after writeback!
-    memcpy(&ext->desc_copy[i],&desc[i],sizeof(struct xdma_desc));
+    memcpy(&ext->desc_copy[i],ext->desc[i],sizeof(struct xdma_desc));
   }
   //Now we should prepare a copy of descriptors (as writeback destroys them!)
 	
@@ -245,17 +238,21 @@ static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
   //We simply imitate the transfer building 
   ext->transfer = kzalloc(sizeof(struct xdma_transfer), GFP_KERNEL);
   if(!ext->transfer) {
-    xdma_desc_free(engine->lro->pci_dev,WZ_DMA_NOFBUFS,
-		   desc_first, desc_first_dma_t);
+	for(i=0;i<WZ_DMA_NOFBUFS;i++) {
+		xdma_desc_free(engine->lro->pci_dev,1,
+		   ext->desc[i], ext->desc_dma[i]);
+		ext->desc[i]=NULL;
+		ext->desc_dma[i]=0;
+	   }
     printk(KERN_ERR "I can't start transfer if buffers are not allocated\n");
     return -ENOMEM;
   }
-  ext->transfer->desc_virt = desc_first;
-  ext->transfer->desc_bus = desc_first_dma_t;
+  ext->transfer->desc_virt = ext->desc[0];
+  ext->transfer->desc_bus = ext->desc_dma[0];
   ext->transfer->desc_adjacent = 0;
-  ext->transfer->desc_num = 1;
+  ext->transfer->desc_num = WZ_DMA_NOFBUFS;
   ext->transfer->dir_to_dev = 0;
-  ext->transfer->sgl_nents = WZ_DMA_NOFBUFS;
+  ext->transfer->sgl_nents = 1;
   ext->transfer->cyclic = 0;
 #ifdef WZ_TRANSFER_CYCLIC
   ext->transfer->cyclic = 1;
@@ -296,15 +293,15 @@ static int ioctl_do_wz_confirm(struct xdma_engine *engine, unsigned long arg)
     dma_sync_single_range_for_device(&engine->lro->pci_dev->dev, 
 				     ext->buf_dma_t[i],0,WZ_DMA_BUFLEN,DMA_FROM_DEVICE);
     //Restore the descriptor so, that the control word with MAGIC is written as the last!
-    ext->desc[i].bytes = ext->desc_copy[i].bytes;
-    ext->desc[i].src_addr_lo = ext->desc_copy[i].src_addr_lo;
-    ext->desc[i].src_addr_hi = ext->desc_copy[i].src_addr_hi;
-    ext->desc[i].dst_addr_lo = ext->desc_copy[i].dst_addr_lo;
-    ext->desc[i].dst_addr_hi = ext->desc_copy[i].dst_addr_hi;
-    ext->desc[i].next_lo = ext->desc_copy[i].next_lo;
-    ext->desc[i].next_hi = ext->desc_copy[i].next_hi;
+    ext->desc[i]->bytes = ext->desc_copy[i].bytes;
+    ext->desc[i]->src_addr_lo = ext->desc_copy[i].src_addr_lo;
+    ext->desc[i]->src_addr_hi = ext->desc_copy[i].src_addr_hi;
+    ext->desc[i]->dst_addr_lo = ext->desc_copy[i].dst_addr_lo;
+    ext->desc[i]->dst_addr_hi = ext->desc_copy[i].dst_addr_hi;
+    ext->desc[i]->next_lo = ext->desc_copy[i].next_lo;
+    ext->desc[i]->next_hi = ext->desc_copy[i].next_hi;
     mb();
-    ext->desc[i].control = ext->desc_copy[i].control;
+    ext->desc[i]->control = ext->desc_copy[i].control;
     mb();
     if (i == db_conf.last_desc) break;
     i = (i+1) & (WZ_DMA_NOFBUFS - 1);
