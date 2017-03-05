@@ -18,6 +18,7 @@ struct wz_xdma_engine_ext{
     //dma_addr_t writeback_dma_t;
     struct xdma_transfer *transfer;
     struct xdma_desc * desc_copy;
+    struct xdma_desc * desc[WZ_DMA_NOFBUFS];
     uint8_t buf_ready;
     //Fields used to keep track of the filled blocks
     int eop_count;
