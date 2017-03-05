@@ -18,16 +18,16 @@ void swz_mmap_close(struct vm_area_struct *vma)
  
 static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 {
-  long offset;
+  int64_t offset;
   struct xdma_char *xchar = NULL;
   struct page * buffer = NULL;
-  int buf_num = 0;
+  int64_t buf_num = 0;
   xchar = (struct xdma_char *) vma->vm_private_data;
   //Calculate the offset (according to info in 
   // https://lxr.missinglinkelectronics.com/linux+v2.6.32/drivers/gpu/drm/i915/i915_gem.c#L1195
   // it is better not ot use the vmf->pgoff )
   //printk(KERN_INFO "Fault virt: %llx, start of vma: %llx\n", (u64) vmf->virtual_address, (u64) vma->vm_start);
-  offset = (unsigned long)(vmf->address - vma->vm_start);
+  offset = (int64_t)(vmf->address - vma->vm_start);
   //Calculate the buffer number
   buf_num = offset/WZ_DMA_BUFLEN;
   //Check if the resulting number is not higher than the number of allocated buffers
@@ -419,7 +419,7 @@ static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine)
   while(true) {
     struct xdma_desc * cur_desc;
     struct xdma_result * cur_res;
-    cur_desc = &ext->transfer->desc_virt[check_desc];
+    cur_desc = ext->desc[check_desc];
     cur_res = (struct xdma_result *) cur_desc;
     if(((cur_res->status >> 16) & 0xffff) !=  C2H_WB) {
       //This descriptor does not contain writeback MAGIC
