@@ -29,7 +29,7 @@
 #include <linux/uio.h>
 /* includes added by WZab */
 #include "wz-xdma.h"
- #define pr_debug(fmt, ...) \
+#define pr_debug(fmt, ...) \
        printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
 
 /* SECTION: Preprocessor switches */
