@@ -37,9 +37,9 @@ static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
   }
   //Calculate the offset inside the buffer
   offset = offset - buf_num * WZ_DMA_BUFLEN;
-  buffer = xchar->engine->wz_ext.buf_addr[buf_num];
+  buffer = xchar->engine->wz_ext.buf_page[buf_num];
   //Get the pfn of the buffer
-  vm_insert_pfn(vma,(unsigned long)(vmf->address),virt_to_phys(&buffer[offset]) >> PAGE_SHIFT);         
+  vm_insert_pfn(vma,(unsigned long)(vmf->address),page_to_pfn(buffer)+(offset>>PAGE_SHIFT));         
   return VM_FAULT_NOPAGE;
 }
  
@@ -81,10 +81,15 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
   //application may use cache.
   //pci_set_consistent_dma_mask(engine->lro->pci_dev, DMA_BIT_MASK(64));
   for(i=0;i<WZ_DMA_NOFBUFS;i++) {
-    ext->buf_addr[i] = dmam_alloc_noncoherent(&engine->lro->pci_dev->dev,
-					      WZ_DMA_BUFLEN, &ext->buf_dma_t[i],GFP_USER);
-    printk(KERN_INFO "Allocated buffer %d: device=%p, virt=%llx, dma=%llx\n", i, &engine->lro->pci_dev->dev, (u64) ext->buf_addr[i],(u64) ext->buf_dma_t[i]);                
-    if(ext->buf_addr[i] == NULL) {
+    ext->buf_page[i] = alloc_pages(GFP_USER, get_order(WZ_DMA_BUFLEN));
+    if(ext->buf_page[i]==NULL) {
+        res = -ENOMEM;
+        got err1;
+    }
+    ext->buf_dma_t[i] = dma_map_page(&engine->lro->pci_dev->dev,page_to_phys(ext->buf_page[i]),
+					      0,WZ_DMA_BUFLEN, DMA_FROM_DEVICE);
+    printk(KERN_INFO "Allocated buffer %d: device=%p, page=%llx, dma=%llx\n", i, &engine->lro->pci_dev->dev, (u64) ext->buf_page[i],(u64) ext->buf_dma_t[i]);                
+    if(ext->buf_dma_t[i] == 0) {
       res = -ENOMEM;
       goto err1;
     }
@@ -115,10 +120,14 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
   //pci_set_consistent_dma_mask(engine->lro->pci_dev, DMA_BIT_MASK(32));
   //Free already allocated buffers
   for(i=0;i<WZ_DMA_NOFBUFS;i++) {
-    if(ext->buf_addr[i]) {
-      dmam_free_noncoherent(&engine->lro->pci_dev->dev,
-			    WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);
-      ext->buf_addr[i] = NULL;
+    if(ext->buf_dma_t[i]) {
+      dma_unmap_page(&engine->lro->pci_dev->dev,
+			    ext->buf_dma_t[i],WZ_DMA_BUFLEN);
+      ext->buf_dma[i] = NULL;
+    }
+    if(ext->buf_page[i]) {
+      __free_pages(ext->buf_page[i],get_order(WZ_DMA_BUFLEN));
+      ext->buf_page[i] = NULL;
     }
   }
   if(ext->desc_copy) {
@@ -137,9 +146,15 @@ static int ioctl_do_wz_free_buffers(struct xdma_engine *engine, unsigned long ar
   printk(KERN_INFO "Starting to free buffers\n");
   if(ext->buf_ready) {
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {
-      printk(KERN_INFO "Freeing buffer %d: device=%p, virt=%llx, dma=%llx\n",i, &engine->lro->pci_dev->dev, (u64) ext->buf_addr[i],(u64) ext->buf_dma_t[i]);                			
-      dmam_free_noncoherent(&engine->lro->pci_dev->dev,
-			    WZ_DMA_BUFLEN, ext->buf_addr[i], ext->buf_dma_t[i]);        
+        if(ext->buf_dma_t[i]) {
+            dma_unmap_page(&engine->lro->pci_dev->dev,
+                ext->buf_dma_t[i],WZ_DMA_BUFLEN);
+            ext->buf_dma[i] = NULL;
+        }
+        if(ext->buf_page[i]) {
+            __free_pages(ext->buf_page[i],get_order(WZ_DMA_BUFLEN));
+            ext->buf_page[i] = NULL;
+        }
     }
   }
   kfifo_free(&ext->kfifo);
