@@ -23,7 +23,6 @@
 #include "xbar_sys_parameters.h"
 
 /* includes added by WZab */
-#include "wz-kernel-versions.h"
 #include "wz-xdma-funcs.h"
 
 /* SECTION: Module licensing */
