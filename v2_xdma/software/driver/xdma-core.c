@@ -23,6 +23,7 @@
 #include "xbar_sys_parameters.h"
 
 /* includes added by WZab */
+#include "wz-kernel-versions.h"
 #include "wz-xdma-funcs.h"
 
 /* SECTION: Module licensing */
@@ -300,14 +301,14 @@ static const struct file_operations sg_interrupt_fops = {
 	.owner = THIS_MODULE,
 	.open = char_sgdma_open,
 	.release = char_sgdma_close,
-	.read = char_sgdma_read,
-	.write = char_sgdma_write,
+	//.read = char_sgdma_read,
+	//.write = char_sgdma_write,
     .mmap = char_sgdma_wz_mmap,
 	.unlocked_ioctl = char_sgdma_ioctl,
-	.llseek = char_sgdma_llseek,
+	//.llseek = char_sgdma_llseek,
 #if !defined(XDMA_NEW_AIO)
-	.aio_read = sg_aio_read,
-	.aio_write = sg_aio_write,
+	//.aio_read = sg_aio_read,
+	//.aio_write = sg_aio_write,
 #endif
 };
 
@@ -2059,7 +2060,7 @@ static void xdma_desc_link(struct xdma_desc *first, struct xdma_desc *second,
 		 */
 		first->next_lo = cpu_to_le32(PCI_DMA_L(second_bus));
 		first->next_hi = cpu_to_le32(PCI_DMA_H(second_bus));
-		WARN_ON(first->next_hi);
+		//WARN_ON(first->next_hi); //WZab: Why? It doesn't make sense here!
 		/* no second descriptor given */
 	} else {
 		/* first descriptor is the last */

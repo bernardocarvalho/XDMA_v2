@@ -8,7 +8,7 @@
 #include <time.h>
 //#include <wz-xdma-ioctl.h>
 #include <fcntl.h>
-#define TOT_BUF_LEN ((long) WZ_DMA_BUFLEN * (long) WZ_DMA_NOFBUFS)
+#define TOT_BUF_LEN ((int64_t) WZ_DMA_BUFLEN * (int64_t) WZ_DMA_NOFBUFS)
 int fu=-1;
 int fc=-1;
 int fm=-1;
@@ -98,7 +98,7 @@ int main(int argc, char * argv[])
 	}
 	//Ensure, that all pages are mapped
 	{
-		int i;
+		uint64_t i;
 		for(i=0;i<TOT_BUF_LEN/sizeof(uint64_t);i++)
 			dummy1 += data_buf[i];
 	}
@@ -116,7 +116,7 @@ int main(int argc, char * argv[])
 	tstart=ts.tv_sec+1.0e-9*ts.tv_nsec;
 	start_source();
 	while(1) {
-		int cur_len=0;
+		int64_t cur_len=0;
 			res=ioctl(fm,IOCTL_XDMA_WZ_GETBUF,(long) &bdesc);
 			if(res<0) {
 				perror("I can't get buffer");
@@ -128,14 +128,14 @@ int main(int argc, char * argv[])
 				//Ignore the first block, it may be corrupted after the previous run
 			} else {
 				//Check the correctness of the data
-				int dta_index=WZ_DMA_BUFLEN*bdesc.first_desc;
-				struct dta_header * dh = (struct dta_header *) &data_buf[dta_index];
+				int64_t dta_index=(int64_t) WZ_DMA_BUFLEN * (int64_t) bdesc.first_desc;
+				struct dta_header * dh = (struct dta_header *) ( data_buf + dta_index );
 				int dlen = get_len(dh);
 				int dinit = get_init(dh);
 				int dstep = get_step(dh);
 				int i;
 				int exp_len = dlen * 32;
-				cur_len = (WZ_DMA_BUFLEN*((bdesc.last_desc - bdesc.first_desc) % WZ_DMA_NOFBUFS))+bdesc.last_len;
+				cur_len = ((int64_t)WZ_DMA_BUFLEN*((bdesc.last_desc - bdesc.first_desc) % (int64_t) WZ_DMA_NOFBUFS))+bdesc.last_len;
 				//Check if the cur_len is correct
 				if(cur_len != exp_len) {
 					printf("buffer_nr=%d\n",bdesc.first_desc);
@@ -172,5 +172,12 @@ int main(int argc, char * argv[])
 				printf("transmitted: %ld time: %g rate: %g\n",tot_len, tcur-tstart, tot_len/(tcur-tstart));
 				old_tot_len = tot_len;
 			}
+	//if(tot_len > 10L*1024L*1024L*1024L) break; //exit, to check if the the program closes cleanly
 	}
+	ioctl(fm,IOCTL_XDMA_WZ_STOP,0L);
+	munmap((void *)data_buf, TOT_BUF_LEN);
+	ioctl(fm,IOCTL_XDMA_WZ_FREE_BUFFERS,0L);
+	close(fm);
+	close(fc);
+	close(fu);
 }
