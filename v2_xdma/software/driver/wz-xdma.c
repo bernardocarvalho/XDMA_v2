@@ -410,6 +410,16 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
       printk(KERN_ERR "Error copying result to user\n");
       return -EINVAL;
     }
+    //Sycnhronize the buffer for CPU
+    {
+      int i=db_desc.first_desc;
+      while(1) {
+         dma_sync_single_range_for_cpu(&engine->lro->pci_dev->dev, 
+      			    ext->buf_dma_t[i],0,WZ_DMA_BUFLEN,DMA_FROM_DEVICE);
+        if(i==db_desc.last_desc) break;
+        i = (i+1) & (WZ_DMA_NOFBUFS-1);   
+        } 
+    }
     return 0;
   };
   // No !!! The above design is wrong!!! I don't want to traverse the descriptors' list twice!
@@ -468,8 +478,8 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
 	break; 
       }
       //Ensure, that the buffer is synchronized for CPU
-      dma_sync_single_range_for_cpu(&engine->lro->pci_dev->dev, 
-				    ext->buf_dma_t[check_desc],0,WZ_DMA_BUFLEN,DMA_FROM_DEVICE);
+      //dma_sync_single_range_for_cpu(&engine->lro->pci_dev->dev, 
+      //			    ext->buf_dma_t[check_desc],0,WZ_DMA_BUFLEN,DMA_FROM_DEVICE);
       //Check if EOP is set in this descriptor
       if( cur_res->status & 1 ) {
 	//This is the last packet in the block!
