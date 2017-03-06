@@ -27,8 +27,12 @@ struct wz_xdma_engine_ext{
     int desc_tail; //The last descriptor that has been freed for transmission
     int block_first_desc;
     int block_scanned_desc;
-    //spinlock_t kfifo_lock;
+    #if  LINUX_VERSION_CODE < KERNEL_VER_KFIFO1
+    spinlock_t kfifo_lock;
+    struct kfifo * kfifo;
+    #else
     STRUCT_KFIFO_PTR(struct  wz_xdma_data_block_desc) kfifo;
+    #endif
     wait_queue_head_t getbuf_wq;
 };
 
