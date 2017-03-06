@@ -383,9 +383,15 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
     //wz_engine_service_cyclic_interrupt
     //However, it is not clear if it can be called outside the 
     //interrupt context...
+#if LINUX_VERSION_CODE < KERNEL_VER_KFIFO1
+    res = wait_event_interruptible(ext->getbuf_wq, 
+				   (kfifo_len(ext->kfifo) >= sizeof(struct wz_xdma_data_block_desc))
+				   || !engine->running);
+#else 
     res = wait_event_interruptible(ext->getbuf_wq, 
 				   (kfifo_len(&ext->kfifo) >= 1)
 				   || !engine->running);
+#endif
     if(res<0) return res;
     if(!engine->running) return -EIO;
     //Now we can be sure, that there is buffer ready to service
