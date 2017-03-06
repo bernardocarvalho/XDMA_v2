@@ -43,7 +43,11 @@ static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
   offset = offset - buf_num * WZ_DMA_BUFLEN;
   buffer = xchar->engine->wz_ext.buf_page[buf_num];
   //Get the pfn of the buffer
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,10,0)
+  vm_insert_pfn(vma,(unsigned long)(vmf->virtual_address),page_to_pfn(buffer)+(offset>>PAGE_SHIFT));         
+#else
   vm_insert_pfn(vma,(unsigned long)(vmf->address),page_to_pfn(buffer)+(offset>>PAGE_SHIFT));         
+#endif
   return VM_FAULT_NOPAGE;
 }
  

@@ -8,6 +8,7 @@
 #include <linux/kfifo.h>
 #include <wz-xdma-consts.h>
 #include <wz-xdma-ioctl.h>
+#include <wz-kernel-versions.h>
 struct xdma_engine;
 
 struct wz_xdma_engine_ext{
