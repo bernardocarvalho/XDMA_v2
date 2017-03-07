@@ -2163,7 +2163,7 @@ static void xdma_desc_free(struct pci_dev *dev, int number,
 	BUG_ON(!desc_virt);
 	BUG_ON(number < 0);
 	/* free contiguous list */
-	pci_free_consistent(dev, number * sizeof(struct xdma_desc), desc_virt,
+	dma_free_coherent(&dev->dev, number * sizeof(struct xdma_desc), desc_virt,
 		desc_bus);
 }
 

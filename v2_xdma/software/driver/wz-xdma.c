@@ -218,7 +218,8 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
     //Build XDMA transfer descriptors in a loop
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {  
       if(ext->desc[i]) { //If the descriptor was already allocated, clean it!
-	xdma_desc_free(lro->pci_dev, 1, ext->desc[i], ext->buf_dma_t[i]);
+      printk(KERN_ERR "START: freeing the descriptor %d %p\n",i,ext->desc[i]);
+	xdma_desc_free(engine->lro->pci_dev, 1, ext->desc[i], ext->buf_dma_t[i]);
 	ext->desc[i]=NULL;
 	ext->buf_dma_t[i]=0;
       }
@@ -344,6 +345,7 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
   {
     struct wz_xdma_engine_ext * ext;
     int res;
+    int i;
     ext = &engine->wz_ext;
     //Stop the transfer (?Should it be done?)
     //xdma_engine_stop(engine);
@@ -368,7 +370,8 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
     //Free the descriptors
     for(i=0;i<WZ_DMA_NOFBUFS;i++){
       if(ext->desc[i]) {
-	xdma_desc_free(lro->pci_dev, 1, ext->desc[i], ext->buf_dma_t[i]);
+      printk(KERN_ERR "STOP: freeing the descriptor %d %p\n",i,ext->desc[i]);
+	xdma_desc_free(engine->lro->pci_dev, 1, ext->desc[i], ext->buf_dma_t[i]);
 	ext->desc[i]=NULL;
 	ext->buf_dma_t[i]=0;
       }
