@@ -7,6 +7,7 @@
 static int char_sgdma_wz_mmap(struct file *filp, struct vm_area_struct *vma);
 static int wz_engine_service_cyclic_interrupt(struct xdma_engine *engine);
 static void wz_engine_cleanup(struct xdma_engine *engine);
+static void wz_transfer_destroy(struct xdma_transfer *transfer)
 
 /* Functions supporting the ioctls */
 static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long arg);

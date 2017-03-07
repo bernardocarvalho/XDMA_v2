@@ -11,11 +11,11 @@
 void swz_mmap_open(struct vm_area_struct *vma)
 {
 }
- 
+
 void swz_mmap_close(struct vm_area_struct *vma)
 {
 }
- 
+
 static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 {
   int64_t offset;
@@ -50,7 +50,7 @@ static int swz_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 #endif
   return VM_FAULT_NOPAGE;
 }
- 
+
 struct vm_operations_struct swz_mmap_vm_ops =
   {
     .open =     swz_mmap_open,
@@ -165,15 +165,15 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
     printk(KERN_INFO "Starting to free buffers\n");
     if(ext->buf_ready) {
       for(i=0;i<WZ_DMA_NOFBUFS;i++) {
-        if(ext->buf_dma_t[i]) {
+	if(ext->buf_dma_t[i]) {
 	  dma_unmap_page(&engine->lro->pci_dev->dev,
 			 ext->buf_dma_t[i],WZ_DMA_BUFLEN, DMA_FROM_DEVICE);
 	  ext->buf_dma_t[i] = 0;
-        }
-        if(ext->buf_page[i]) {
+	}
+	if(ext->buf_page[i]) {
 	  __free_pages(ext->buf_page[i],get_order(WZ_DMA_BUFLEN));
 	  ext->buf_page[i] = NULL;
-        }
+	}
       }
     }
 #if LINUX_VERSION_CODE < KERNEL_VER_KFIFO1
@@ -199,7 +199,7 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
    * the performance... 
    * However we need to get the quick verification of the concept first.
    */
-  
+
 
   static int ioctl_do_wz_start(struct xdma_engine *engine, unsigned long arg)
   {
@@ -217,12 +217,17 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
     ext->block_scanned_desc=0;
     //Build XDMA transfer descriptors in a loop
     for(i=0;i<WZ_DMA_NOFBUFS;i++) {  
-      dma_addr_t desc_dma_t;
+      if(ext->desc[i]) { //If the descriptor was already allocated, clean it!
+	xdma_desc_free(lro->pci_dev, 1, ext->desc[i], ext->buf_dma_t[i]);
+	ext->desc[i]=NULL;
+	ext->buf_dma_t[i]=0;
+      }
+
       ext->desc[i] = xdma_desc_alloc(engine->lro->pci_dev,1,
 				     &ext->desc_dma[i], &desc_last);
       if(!ext->desc[i]) {
-        printk(KERN_ERR "I can't allocate descriptors\n");
-        return -ENOMEM;
+	printk(KERN_ERR "I can't allocate descriptors\n");
+	return -ENOMEM;
       }
       if(i>0) {
 	//Link the previous descriptor to that one
@@ -255,7 +260,7 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
       memcpy(&ext->desc_copy[i],ext->desc[i],sizeof(struct xdma_desc));
     }
     //Now we should prepare a copy of descriptors (as writeback destroys them!)
-	
+
     //Set STOP flag in the last descriptor
     //xdma_desc_control_set(&desc[WZ_DMA_NOFBUFS-1],XDMA_DESC_STOPPED);
     printk(KERN_INFO "Descriptors filled\n");
@@ -355,11 +360,19 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
       printk(KERN_ERR "wz_stop: engine still running?!\n");
       return -EINVAL;
     }
-    //Clear the transfer descriptors
+    //Clear the transfer
     spin_lock(&engine->lock);
-    if(ext->transfer) transfer_destroy(engine->lro, ext->transfer);
+    if(ext->transfer) wz_transfer_destroy(ext->transfer);
     ext->transfer = NULL;
     spin_unlock(&engine->lock);
+    //Free the descriptors
+    for(i=0;i<WZ_DMA_NOFBUFS;i++){
+      if(ext->desc[i]) {
+	xdma_desc_free(lro->pci_dev, 1, ext->desc[i], ext->buf_dma_t[i]);
+	ext->desc[i]=NULL;
+	ext->buf_dma_t[i]=0;
+      }
+    }
     //Free the writeback buffers - commented out - no writeback buffers now!
     //dmam_free_coherent(&engine->lro->pci_dev->dev,
     //	sizeof(uint64_t)*WZ_DMA_NOFBUFS, ext->writeback, ext->writeback_dma_t);
@@ -512,6 +525,12 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
 	wake_up_interruptible(&ext->getbuf_wq); //Last chance to wakeup readers!
       }
       return 0;
+    }
+
+    /* transfer_destroy() - free transfer */
+    static void wz_transfer_destroy(struct xdma_transfer *transfer)
+    {
+      if(transfer) kfree(transfer);
     }
 
     //Function below is called when the XDMA engine is released
