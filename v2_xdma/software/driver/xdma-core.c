@@ -963,7 +963,7 @@ static void engine_service_shutdown(struct xdma_engine *engine)
 	engine->running = 0;
 
 	/* awake task on engine's shutdown wait queue */
-	wake_up_interruptible(&engine->shutdown_wq);
+	wake_up(&engine->shutdown_wq);
 }
 
 static void engine_transfer_dequeue(struct xdma_engine *engine)
@@ -1323,7 +1323,7 @@ static void engine_service_resume(struct xdma_engine *engine)
 		if (engine->shutdown & ENGINE_SHUTDOWN_REQUEST) {
 			engine->shutdown |= ENGINE_SHUTDOWN_IDLE;
 			/* awake task on engine's shutdown wait queue */
-			wake_up_interruptible(&engine->shutdown_wq);
+			wake_up(&engine->shutdown_wq);
 		} else if (!list_empty(&engine->transfer_list)) {
 			/* (re)start engine */
 			transfer_started = engine_start(engine);
@@ -4096,13 +4096,15 @@ static int cyclic_shutdown_interrupt(struct xdma_engine *engine)
 
 	BUG_ON(!engine);
 
+	wait_event(engine->shutdown_wq, !engine->running);
+    /*
 	rc = wait_event_interruptible(engine->shutdown_wq, !engine->running);
 
 	if (rc) {
 		dbg_tfr("wait_event_interruptible=%d\n", rc);
 		return rc;
 	}
-
+    */
 	if (engine->running) {
 		dbg_tfr("engine still running?!\n");
 		return -EINVAL;

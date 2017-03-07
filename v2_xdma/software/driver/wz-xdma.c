@@ -383,11 +383,12 @@ static int ioctl_do_wz_stop(struct xdma_engine *engine, unsigned long arg)
     spin_unlock(&engine->lock);
     //wait until engine stops
     wait_event(engine->shutdown_wq, !engine->running);
-    /*if (res)
+    /* res = wait_event_interruptible(engine->shutdown_wq, !engine->running);
+    if (res)
     {
         printk(KERN_ERR "wz_stop: wait_event_interruptible=%d\n", res);
         return res;
-    }*/
+    } */
     if (engine->running)
     {
         printk(KERN_ERR "wz_stop: engine still running?!\n");
