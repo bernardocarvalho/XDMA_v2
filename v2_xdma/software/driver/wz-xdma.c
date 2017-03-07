@@ -104,7 +104,7 @@ static int ioctl_do_wz_alloc_buffers(struct xdma_engine *engine, unsigned long a
         }
         ext->buf_dma_t[i] = dma_map_page(&engine->lro->pci_dev->dev,ext->buf_page[i],
                                          0,WZ_DMA_BUFLEN, DMA_FROM_DEVICE);
-        printk(KERN_INFO "Allocated buffer %d: device=%p, page=%llx, dma=%llx\n", i, &engine->lro->pci_dev->dev, (u64) ext->buf_page[i],(u64) ext->buf_dma_t[i]);
+        //printk(KERN_INFO "Allocated buffer %d: device=%p, page=%llx, dma=%llx\n", i, &engine->lro->pci_dev->dev, (u64) ext->buf_page[i],(u64) ext->buf_dma_t[i]);
         if(ext->buf_dma_t[i] == 0)
         {
             res = -ENOMEM;
