@@ -172,7 +172,7 @@ int main(int argc, char * argv[])
 				printf("transmitted: %ld time: %g rate: %g\n",tot_len, tcur-tstart, tot_len/(tcur-tstart));
 				old_tot_len = tot_len;
 			}
-	//if(tot_len > 10L*1024L*1024L*1024L) break; //exit, to check if the the program closes cleanly
+	if(tot_len > 10L*1024L*1024L*1024L) break; //exit, to check if the the program closes cleanly
 	}
 	ioctl(fm,IOCTL_XDMA_WZ_STOP,0L);
 	munmap((void *)data_buf, TOT_BUF_LEN);
