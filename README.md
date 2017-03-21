@@ -1,0 +1,1 @@
+This project contains the significantly modified driver for Xilinx XDMA IP core. It allows high-speed cyclic transfer to the huge memory buffers directly mapped to the application memory.
