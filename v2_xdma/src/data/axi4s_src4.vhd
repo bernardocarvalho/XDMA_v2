@@ -47,11 +47,11 @@ entity axi4s_src3 is
 end entity axi4s_src3;
 
 architecture rtl of axi4s_src3 is
-  constant PKT_DEL   : integer                := 10;
-  type     T_SRC_STATE is (ST_IDLE, ST_START_HEAD, ST_START_PKT, ST_SEND_PKT);
+  signal    pkt_del   : integer                := 10;
+  type     T_SRC_STATE is (ST_IDLE, ST_WORD0, ST_WORD1, ST_WORD2, ST_END);
   signal   src_state : T_SRC_STATE            := ST_IDLE;
   signal   pkt_step  : integer                := 0;
-  signal   s_data    : unsigned(255 downto 0) := (others => '0');
+  signal   s_data    : unsigned(703 downto 0) := (others => '0');
   signal   cnt_data  : unsigned(31 downto 0)  := (others => '0');
   signal   old_start : std_logic              := '0';
   signal   wrd_count : integer                := 0;
@@ -61,6 +61,8 @@ architecture rtl of axi4s_src3 is
   signal   shift_reg : std_logic_vector(48 downto 0);
   signal   ack_pkt   : std_logic              := '0';
   signal   start_pkt : std_logic              := '0';
+  signal   timestamp, s_timestamp : unsigned(31 downto 0) := (others => '0');
+  signal   chn_num : integer;
 
   function mk_rec (
     constant chn_num   : integer;
@@ -104,7 +106,9 @@ begin  -- architecture rtl
       if (resetn = '0') or (start = '0') then  -- synchronous reset (active high)
         del_cnt   <= 0;
         start_pkt <= '0';
+        timestamp <= (others => '0');
       else
+        timestamp <= timestamp + 1;
         -- If generation of packet is acknowledged, clear start_pkt
         if ack_pkt = '1' then
           start_pkt <= '0';
@@ -123,7 +127,6 @@ begin  -- architecture rtl
 
   p1 : process (clk) is
     variable v_chn_num : integer;
-    signal s_timestamp : unsigned(31 downto 0);
   begin  -- process p1
     if clk'event and clk = '1' then     -- rising clock edge
       if resetn = '0' then              -- synchronous reset (active low)
@@ -146,10 +149,10 @@ begin  -- architecture rtl
               if v_chn_num=0 or v_chn_num=63 then
                 v_chn_num := to_integer(unsigned(shift_reg(11 downto 6)));
                 if v_chn_num = 0 then
-                  v_chn_num = 1;
+                  v_chn_num := 1;
                 end if;
                 if v_chn_num = 63 then
-                  v_chn_num = 62;
+                  v_chn_num := 62;
                 end if;                
               end if;
               chn_num <= v_chn_num;

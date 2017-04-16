@@ -126,8 +126,9 @@
         <spirit:componentRef spirit:library="ip" spirit:name="axis_dwidth_converter" spirit:vendor="xilinx.com" spirit:version="1.1"/>
         <spirit:configurableElementValues>
           <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_axis_dwidth_converter_0_0</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="S_TDATA_NUM_BYTES">32</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="S_TDATA_NUM_BYTES">88</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="M_TDATA_NUM_BYTES">16</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="HAS_MI_TKEEP">1</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
       <spirit:componentInstance>
