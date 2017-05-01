@@ -6,7 +6,7 @@
 -- Author     : Wojciech M. Zabolotny <wzab01@gmail.com>
 -- Company    : 
 -- Created    : 2016-08-09
--- Last update: 2017-03-04
+-- Last update: 2017-05-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,41 +30,46 @@ entity axi4s_src3 is
 
   port (
     -- AXI4 Stream interface
-    tdata  : out std_logic_vector(255 downto 0);
-    tkeep  : out std_logic_vector(31 downto 0);
-    tlast  : out std_logic;
-    tready : in  std_logic;
-    tvalid : out std_logic;
+    tdata     : out std_logic_vector(255 downto 0);
+    tkeep     : out std_logic_vector(31 downto 0);
+    tlast     : out std_logic;
+    tready    : in  std_logic;
+    tvalid    : out std_logic;
+    -- Timestamp output
+    timestamp : out std_logic_vector(31 downto 0);
     -- System interface
-    clk    : in  std_logic;
-    resetn : in  std_logic;
+    clk       : in  std_logic;
+    resetn    : in  std_logic;
     -- Start signal
-    start  : in  std_logic
+    start     : in  std_logic
     );
 
 end entity axi4s_src3;
 
 architecture rtl of axi4s_src3 is
-  constant PKT_DEL   : integer                := 10;
-  type     T_SRC_STATE is (ST_IDLE, ST_START_HEAD, ST_START_PKT, ST_SEND_PKT);
-  signal   src_state : T_SRC_STATE            := ST_IDLE;
-  signal   pkt_step  : integer                := 0;
-  signal   s_data    : unsigned(255 downto 0) := (others => '0');
-  signal   cnt_data  : unsigned(31 downto 0)  := (others => '0');
-  signal   old_start : std_logic              := '0';
-  signal   wrd_count : integer                := 0;
-  signal   pkt_len   : integer                := 0;
-  signal   del_cnt   : integer                := 0;
-  signal   init_data : integer                := 0;
-  signal   shift_reg : std_logic_vector(48 downto 0);
-  signal   ack_pkt   : std_logic              := '0';
-  signal   start_pkt : std_logic              := '0';
+  constant PKT_DEL       : integer                := 10;
+  type T_SRC_STATE is (ST_IDLE, ST_START_HEAD, ST_START_PKT, ST_SEND_PKT);
+  signal src_state       : T_SRC_STATE            := ST_IDLE;
+  signal pkt_step        : integer                := 0;
+  signal s_data          : unsigned(255 downto 0) := (others => '0');
+  signal cnt_data        : unsigned(31 downto 0)  := (others => '0');
+  signal s_timestamp     : unsigned(31 downto 0)  := (others => '0');
+  signal s_timestamp_del : unsigned(31 downto 0)  := (others => '0');
+  signal old_start       : std_logic              := '0';
+  signal wrd_count       : integer                := 0;
+  signal pkt_len         : integer                := 0;
+  signal del_cnt         : integer                := 0;
+  signal init_data       : integer                := 0;
+  signal shift_reg       : std_logic_vector(48 downto 0);
+  signal ack_pkt         : std_logic              := '0';
+  signal start_pkt       : std_logic              := '0';
 
 
 begin  -- architecture rtl
 
-  tkeep <= (others => '1');
-  tdata <= std_logic_vector(s_data);
+  tkeep     <= (others => '1');
+  tdata     <= std_logic_vector(s_data);
+  timestamp <= std_logic_vector(s_timestamp);
 
   -- Here we have the pseudorandom generator, used to generate the length of
   -- the packet and its step
@@ -73,11 +78,16 @@ begin  -- architecture rtl
   begin  -- process p2
     if clk'event and clk = '1' then     -- rising clock edge
       if resetn = '0' then              -- synchronous reset (active high)
-        shift_reg <= std_logic_vector(to_unsigned(1, 49));
+        shift_reg       <= std_logic_vector(to_unsigned(1, 49));
+        s_timestamp     <= (others => '0');
+        s_timestamp_del <= (others => '0');
       else
         -- Shift register
-        new_bit   := shift_reg(48) xor shift_reg(39);
-        shift_reg <= shift_reg(47 downto 0) & new_bit;
+        new_bit         := shift_reg(48) xor shift_reg(39);
+        shift_reg       <= shift_reg(47 downto 0) & new_bit;
+        -- Increase the timestamp
+        s_timestamp     <= s_timestamp + 1;
+        s_timestamp_del <= s_timestamp;
       end if;
     end if;
   end process p2;
@@ -151,7 +161,10 @@ begin  -- architecture rtl
                   s_data(32*i+31 downto 32*i) <= cnt_data+i;
                 end loop;  -- i
                 if wrd_count = pkt_len then
-                  tlast <= '1';
+                  -- The last data will be replaced by the timestamp
+                  s_data(223 downto 192) <= x"aaBBccDD";
+                  s_data(255 downto 224) <= s_timestamp;
+                  tlast                  <= '1';
                 end if;
               else
                 wrd_count <= 0;
