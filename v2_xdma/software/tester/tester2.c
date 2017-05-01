@@ -138,7 +138,7 @@ int main(int argc, char * argv[])
                                    struct dta_payload * dp = (struct dta_payload *) ( data_buf + dta_index2 );   
                                    uint32_t marker = dp->dta[6]; //Should be 0xaabbccdd
                                    uint32_t tstamp = dp->dta[7]; 
-                                   printf("latency=%d\n",get_timestamp()-tstamp);
+                                   printf("marker=%x latency=%d\n",marker, get_timestamp()-tstamp);
 				}
 				//Check the correctness of the data
 				int64_t dta_index=(int64_t) WZ_DMA_BUFLEN * (int64_t) bdesc.first_desc;
