@@ -132,7 +132,7 @@
         <spirit:componentRef spirit:library="ip" spirit:name="xdma" spirit:vendor="xilinx.com" spirit:version="3.0"/>
         <spirit:configurableElementValues>
           <spirit:configurableElementValue spirit:referenceId="bd:xciName">DMA_core_xdma_0_0</spirit:configurableElementValue>
-          <spirit:configurableElementValue spirit:referenceId="mode_selection">Basic</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="mode_selection">Advanced</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="pl_link_cap_max_link_width">X4</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="pl_link_cap_max_link_speed">5.0_GT/s</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="axi_data_width">128_bit</spirit:configurableElementValue>
@@ -155,6 +155,7 @@
           <spirit:configurableElementValue spirit:referenceId="plltype">QPLL1</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="xdma_axi_intf_mm">AXI_Stream</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="xdma_pcie_64bit_en">true</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="performance">true</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="cfg_mgmt_if">false</spirit:configurableElementValue>
           <spirit:configurableElementValue spirit:referenceId="axil_master_64bit_en">true</spirit:configurableElementValue>
         </spirit:configurableElementValues>
