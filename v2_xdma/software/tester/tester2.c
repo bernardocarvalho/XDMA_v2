@@ -63,7 +63,7 @@ int stop_source()
 
 uint32_t get_timestamp()
 {
-	return usr_regs[0x10000/4]=0;
+	return usr_regs[0x10000/4];
 }
 
 int main(int argc, char * argv[])
