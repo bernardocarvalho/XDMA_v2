@@ -51,14 +51,19 @@ int64_t old_tot_len = 0;
 
 int start_source()
 {
-	usr_regs[0x10000/4]=1;
+	usr_regs[0x00000/4]=1;
 	asm volatile ("" : : : "memory");
 }
 
 int stop_source()
 {
-	usr_regs[0x10000/4]=0;
+	usr_regs[0x00000/4]=0;
 	asm volatile ("" : : : "memory");
+}
+
+uint32_t get_timestamp()
+{
+	return usr_regs[0x10000/4]=0;
 }
 
 int main(int argc, char * argv[])
@@ -127,6 +132,14 @@ int main(int argc, char * argv[])
 				first = 0;
 				//Ignore the first block, it may be corrupted after the previous run
 			} else {
+				//Read the timestamp from the data
+				{
+   				   int64_t dta_index2 =  ((int64_t) WZ_DMA_BUFLEN * (int64_t) bdesc.last_desc) + (int64_t) bdesc.last_len - 32;
+                                   struct dta_payload * dp = (struct dta_payload *) ( data_buf + dta_index2 );   
+                                   uint32_t marker = dp->dta[6]; //Should be 0xaabbccdd
+                                   uint32_t tstamp = dp->dta[7]; 
+                                   printf("latency=%d\n",get_timestamp()-tstamp);
+				}
 				//Check the correctness of the data
 				int64_t dta_index=(int64_t) WZ_DMA_BUFLEN * (int64_t) bdesc.first_desc;
 				struct dta_header * dh = (struct dta_header *) ( data_buf + dta_index );
