@@ -1,6 +1,7 @@
-all: tester2
-tester2: tester2.c ../include/*.h
-	gcc -I../include  -g -o tester2 -lrt tester2.c
+all: tester3
+tester3: tester3.c ../include/*.h
+	gcc -I../include  -g -o tester3 -lrt tester3.c
 clean:
 	rm -rf tester2
+	rm -rf tester3
 

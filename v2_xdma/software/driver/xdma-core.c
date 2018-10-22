@@ -62,6 +62,8 @@ MODULE_PARM_DESC(load_firmware, "For UltraScale boards load xclbin firmware file
 struct class *g_xdma_class;	/* sys filesystem */
 
 static const struct pci_device_id pci_ids[] = {
+	{ PCI_DEVICE(0x10EE, 0x1333), },
+	{ PCI_DEVICE(0x10EE, 0x7014), },
 	{ PCI_DEVICE(0x32ab, 0x1333), },
 	{0,}
 };
