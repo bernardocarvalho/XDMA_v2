@@ -12,3 +12,7 @@
 .tmp_versions/
 modules.order
 Module.symvers
+
+#Vivado files
+*.jou
+*.log
