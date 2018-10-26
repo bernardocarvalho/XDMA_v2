@@ -6,13 +6,16 @@
 #include <sys/mman.h>
 #include <stdint.h>
 #include <xdma-ioctl.h>
+#include <assert.h>
 #include <time.h>
 //#include <wz-xdma-ioctl.h>
 #include <fcntl.h>
 #define TOT_BUF_LEN ((int64_t) WZ_DMA_BUFLEN * (int64_t) WZ_DMA_NOFBUFS)
+#define PACKET_LEN 0x4000 // 16384
 int fu=-1;
 int fc=-1;
 int fm=-1;
+int fd_file=-1;
 volatile uint32_t * usr_regs = NULL;
 volatile char * data_buf = NULL;
 struct timespec ts;
@@ -67,6 +70,10 @@ int stop_source()
 int main(int argc, char * argv[])
 {
     int res;
+	int * pData ;
+    fd_file =open("data/data.hex", O_RDWR | O_CREAT | O_TRUNC | O_SYNC, 0666);
+    assert(fd_file >= 0);
+
     fu=open("/dev/wz-xdma0_user", O_RDWR);
     if(fu<0) {
         perror("Can't open /dev/wz-xdma0_user");
@@ -124,7 +131,7 @@ int main(int argc, char * argv[])
     clock_gettime(CLOCK_MONOTONIC,&ts);
     tstart=ts.tv_sec+1.0e-9*ts.tv_nsec;
     start_source();
-    for(int i=0; i<3; i++){
+    for(int i=0; i<10; i++){
         int64_t cur_len=0;
         res=ioctl(fm,IOCTL_XDMA_WZ_GETBUF,(long) &bdesc);
         if(res<0) {
@@ -134,7 +141,7 @@ int main(int argc, char * argv[])
         }
         printf("b_f=%d, b_l=%d, b_ln=%d\n",bdesc.first_desc, bdesc.last_desc, bdesc.last_len);
         if(first==1) {
-            first = 1;
+            first = 0;
             //Ignore the first block, it may be corrupted after the previous run
         }
         else 
@@ -190,9 +197,17 @@ int main(int argc, char * argv[])
     printf("Source stopped\n");
     //Stop the dma acquisition 
     ioctl(fm,IOCTL_XDMA_WZ_STOP, 0L);
+	pData = (int *) data_buf;
+    for(int i=0; i< 2; i++){
+        for(int j=0; j< 4; j++)
+            printf("0x%08X ", pData[j]);
+        printf("\n");
+		write(fd_file, pData, PACKET_LEN);
+        pData += WZ_DMA_BUFLEN /sizeof(int);
+    }
     munmap((void *)data_buf, TOT_BUF_LEN);
     ioctl(fm,IOCTL_XDMA_WZ_FREE_BUFFERS,0L);
-
+    close(fd_file);
     close(fm);
     close(fc);
     close(fu);
