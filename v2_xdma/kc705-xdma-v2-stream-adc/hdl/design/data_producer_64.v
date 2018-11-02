@@ -103,7 +103,7 @@ module data_producer_64 #
             user_clk_cnt_r <= user_clk_cnt_r + 1;
       end
 
-   assign c2h_data_tvalid =  user_clk_cnt_r[PKT_WIDTH]; // 2048 on, 2048 off
+   assign c2h_data_tvalid = 1'b1;// user_clk_cnt_r[PKT_WIDTH]; // 2048 on, 2048 off
    assign c2h_data_tlast  = (user_clk_cnt_r[PKT_WIDTH-1:0] == {PKT_WIDTH{1'b1}});  
    assign c2h_data_tdata  = {user_clk_cnt_r, 1'b1,   user_clk_cnt_r, 1'b0}; 
    assign m_axis_tvalid   = m_axis_tvalid_o;

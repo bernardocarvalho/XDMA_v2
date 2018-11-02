@@ -76,6 +76,8 @@ create_clock -period 10.000 -name sys_clk [get_ports sys_clk_p]
 
 set_false_path -from [get_ports sys_rst_n]
 
+#IMPLEMENTATION critical warning 
+#[Vivado 12-4739] set_false_path:No valid object(s) found for '-through [get_pins xdma_0_i/inst/pcie3_ip_i/inst/pcie3_uscale_top_inst/pcie3_uscale_wrapper_inst/PCIE_3_1_inst/CFGMAX*]'. ["/home/bernardo/XDMA/GIT/XDMA_v2/v2_xdma/kc705-xdma-v2-stream-adc/constrs/xilinx_pcie_xdma_ref_board.xdc":79]
 set_false_path -through [get_pins xdma_0_i/inst/pcie3_ip_i/inst/pcie3_uscale_top_inst/pcie3_uscale_wrapper_inst/PCIE_3_1_inst/CFGMAX*]
 set_false_path -through [get_nets xdma_0_i/inst/cfg_max*]
 

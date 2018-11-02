@@ -89,7 +89,7 @@ module system_clocks (
       .CLKOUT0_DIVIDE_F(8.0),    // Divide amount for CLKOUT0 (1.000-128.000). 100 Mhz
 //      .CLKOUT0_DIVIDE(8),   // Mhz
       .CLKOUT1_DIVIDE(50),  // 16 MHz
-      .CLKOUT2_DIVIDE(80),  // testing 10Mhz data_clk,  20:40Mhz,  128:6.25 MHz
+      .CLKOUT2_DIVIDE(40),  // testing 20Mhz data_clk,  20:40Mhz,  128:6.25 MHz
       .CLKOUT3_DIVIDE(4),   // 200 MHz
       .CLKOUT4_DIVIDE(40),  //20 Mhz
       .CLKOUT5_DIVIDE(1),

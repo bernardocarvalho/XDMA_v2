@@ -131,7 +131,7 @@ int main(int argc, char * argv[])
     clock_gettime(CLOCK_MONOTONIC,&ts);
     tstart=ts.tv_sec+1.0e-9*ts.tv_nsec;
     start_source();
-    for(int i=0; i<10; i++){
+    for(int i=0; i<2; i++){
         int64_t cur_len=0;
         res=ioctl(fm,IOCTL_XDMA_WZ_GETBUF,(long) &bdesc);
         if(res<0) {
