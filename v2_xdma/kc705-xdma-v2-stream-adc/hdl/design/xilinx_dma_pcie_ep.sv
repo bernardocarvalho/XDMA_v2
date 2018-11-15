@@ -307,7 +307,26 @@ module xilinx_dma_pcie_ep #
   OBUF led_7_obuf (.O(led_7), .I(leds[7]));
   
     //(* mark_debug = "true" *) wire state_i;
-    
+/* 
+// module dma_packet #(
+//        parameter DATA_WIDTH = 64,
+//        parameter KEEP_WIDTH = (DATA_WIDTH/8),
+//        parameter DMA_PACKET_SIZE = 12'h401 //0 //  16k + 16 in bytes >> 4
+//    )(
+     
+     dma_packet   data_producer_inst(
+        .data_clk(data_clk_i),
+        .new_sample(new_sample_i),
+        .dma_en(dma_ena_i),
+        .dma_rst_n(dma_rstn_i),
+        
+        .m_axis_tdata(s_axis_c2h_tdata_0),    // output wire [63 : 0] m_axis_tdata
+        .m_axis_tkeep(s_axis_c2h_tkeep_0),    // output wire [7 : 0] m_axis_tkeep
+        .m_axis_tvalid(s_axis_c2h_tvalid_0),  // output wire m_axis_tvalid
+        .m_axis_tready(s_axis_c2h_tready_0),  // input wire m_axis_tready
+        .m_axis_tlast(s_axis_c2h_tlast_0)    // output wire m_axis_tlast
+     );
+*/
     // DMA Data out  
     data_producer_64 data_producer_inst (
       .user_clk(user_clk),                // input wire s_aclk

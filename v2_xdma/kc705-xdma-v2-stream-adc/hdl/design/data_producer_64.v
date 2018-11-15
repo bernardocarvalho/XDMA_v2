@@ -78,8 +78,9 @@ module data_producer_64 #
     (* mark_debug = "true" *) wire c2h_data_tlast;
     (* mark_debug = "true" *) wire c2h_data_tready;
     
-    localparam COUNTER_WIDTH = 31;//DATA_WIDTH;
+    localparam COUNTER_WIDTH = 32;//DATA_WIDTH;
     reg [COUNTER_WIDTH-1:0] user_clk_cnt_r = 0;// {COUNTER_WIDTH{1'b1}};
+    localparam PACKET_WORD_SIZE = {32'h0000_07FF}; 
     
     //reg [7:0]  ff_clk_cnt = 0;
     reg [WAIT_WIDTH-1:0] wait_cnt = 0;
@@ -87,10 +88,10 @@ module data_producer_64 #
     
     //parameter WIDTH = $clog2(DEPTH);
     
-    localparam IDLE = 2'b00;
-    localparam FILL = 2'b01;
-    localparam WAIT = 2'b10;
-    localparam STATE3 = 2'b11;
+    localparam IDLE = 2'b00,
+               FILL = 2'b01,
+               WAIT = 2'b10,
+             STATE3 = 2'b11;
 
    (* mark_debug = "true" *) reg [1:0] state = IDLE;
 
@@ -146,8 +147,37 @@ module data_producer_64 #
     assign c2h_data_tlast  = (state == FILL) && (user_clk_cnt_r[PKT_WIDTH-1:0] == {PKT_WIDTH{1'b1}});  
     assign c2h_data_tdata  = {c2h_data_tlast, user_clk_cnt_r[29:0], 1'b1,   user_clk_cnt_r, 1'b0}; 
 */
+
     wire axis_prog_full, m_axis_tvalid_o, m_axis_tready_i ;
- //  (* mark_debug = "true" *) reg [1:0] state_m = IDLE;
+    
+ 
+assign  m_axis_tkeep = {KEEP_WIDTH{1'b1}};
+
+/*
+ * 4096 depth , 2040 full flag
+*/
+fifo_axi_stream_0 fifo_data_inst (
+  .wr_rst_busy(),      // output wire wr_rst_busy
+  .rd_rst_busy(),      // output wire rd_rst_busy
+  .m_aclk(user_clk),                // input wire m_aclk
+  .s_aclk(data_clk),                // input wire s_aclk
+  .s_aresetn(dma_rstn),          // input wire s_aresetn
+  .s_axis_tvalid(c2h_data_tvalid),  // input wire s_axis_tvalid
+  .s_axis_tready(c2h_data_tready),  // output wire s_axis_tready
+  .s_axis_tdata(c2h_data_tdata),    // input wire [63 : 0] s_axis_tdata
+  .s_axis_tlast(c2h_data_tlast),    // input wire s_axis_tlast
+  .m_axis_tvalid(m_axis_tvalid_o),  // output wire m_axis_tvalid
+  .m_axis_tready(m_axis_tready_i),  // input wire m_axis_tready
+  .m_axis_tdata(m_axis_tdata),    // output wire [63 : 0] m_axis_tdata
+  .m_axis_tlast(m_axis_tlast),    // output wire m_axis_tlast
+  .axis_prog_full(axis_prog_full)  // output wire axis_prog_full
+);
+
+  
+endmodule
+
+// Archive
+//  (* mark_debug = "true" *) reg [1:0] state_m = IDLE;
  //(* mark_debug = "true" *) reg  state_m = 1'b0;
    /*Allow DMA only when FIFO (almost) full. Could be done with Facket FIFO */ 
   // assign m_axis_tvalid   = (state_m == FILL)? m_axis_tvalid_o: 1'b0 ;
@@ -176,33 +206,9 @@ module data_producer_64 #
 //assign  c2h_data_tkeep = {KEEP_WIDTH{1'b1}};
 //assign  c2h_data_tlast = pkt_last;  // (user_clk_cnt_r[7:0] == 8'h7F)? 1'b1 : 1'b0; // 128 64 bit words 
 
-assign  m_axis_tkeep = {KEEP_WIDTH{1'b1}};
-
-/*
- * 2048 depth , 2040 full flag
-*/
-fifo_axi_stream_0 fifo_data_inst (
-  .wr_rst_busy(),      // output wire wr_rst_busy
-  .rd_rst_busy(),      // output wire rd_rst_busy
-  .m_aclk(user_clk),                // input wire m_aclk
-  .s_aclk(data_clk),                // input wire s_aclk
-  .s_aresetn(dma_rstn),          // input wire s_aresetn
-  .s_axis_tvalid(c2h_data_tvalid),  // input wire s_axis_tvalid
-  .s_axis_tready(c2h_data_tready),  // output wire s_axis_tready
-  .s_axis_tdata(c2h_data_tdata),    // input wire [63 : 0] s_axis_tdata
-  .s_axis_tlast(c2h_data_tlast),    // input wire s_axis_tlast
-  .m_axis_tvalid(m_axis_tvalid_o),  // output wire m_axis_tvalid
-  .m_axis_tready(m_axis_tready_i),  // input wire m_axis_tready
-  .m_axis_tdata(m_axis_tdata),    // output wire [63 : 0] m_axis_tdata
-  .m_axis_tlast(m_axis_tlast),    // output wire m_axis_tlast
-  .axis_prog_full(axis_prog_full)  // output wire axis_prog_full
-);
-
-  
-endmodule
+/*  
 
 
-/* Archive 
 axis_fifo_64 fifo_xdma_inst (
   .clk(user_clk),                // input wire s_aclk
   .rst(!dma_rstn),          // input wire s_aresetn ~user_resetn

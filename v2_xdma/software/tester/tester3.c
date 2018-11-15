@@ -31,13 +31,14 @@ struct dta_payload {
 struct dta_header {
     uint32_t flags;
     uint32_t len;
-    uint32_t filler[6];
+    uint32_t filler[2];
 } __attribute__((packed)); 
+/*
 unsigned int get_step(struct dta_header * pt)
 {
     return (pt->flags >> 8) & 0xf;
 }
-
+*/
 unsigned int get_init(struct dta_header * pt)
 {
     return pt->flags & 0xff;
@@ -151,17 +152,18 @@ int main(int argc, char * argv[])
             struct dta_header * dh = (struct dta_header *) ( data_buf + dta_index );
             int dlen = get_len(dh);
             int dinit = get_init(dh);
-            int dstep = get_step(dh);
+    //        int dstep = get_step(dh);
         //int is
         int exp_len = dlen * 32;
         cur_len = ((int64_t)WZ_DMA_BUFLEN*((bdesc.last_desc - bdesc.first_desc) % (int64_t) WZ_DMA_NOFBUFS))+bdesc.last_len;
 		//Check if the cur_len is correct
             {
                 printf("buffer_nr=%d\n",bdesc.first_desc);
-                printf("dlen = %d\n",dlen);
-                printf("dinit= %d\n",dinit);
-                printf("dstep = %d\n",dstep);
-                printf("exp_len= %d\n",exp_len);
+                printf("buffer_len=%d\n",bdesc.last_len);
+                printf("dlen = %d\t",dlen);
+                printf("dinit= %d\t",dinit);
+      //          printf("dstep = %d\t",dstep);
+                printf("exp_len= %d\t",exp_len);
                 printf("cur_len= %d\n",cur_len);
 
             }
