@@ -50,7 +50,7 @@ module data_producer_64 #
 )
 (
     input  user_clk,
-    //input  user_rstn,
+    input  user_rstn,
     
     input  data_clk,        // 40 Mhz
     input  new_sample,
@@ -116,8 +116,8 @@ module data_producer_64 #
     reg [COUNTER_WIDTH-1:0]  word_count;         
     reg data_valid_r;
 
-    always @ (posedge data_clk or negedge dma_ena) begin
-        if (!dma_ena) begin
+    always @ (posedge data_clk or negedge user_rstn) begin
+        if (!user_rstn) begin
             word_count <= 0;
             state <= IDLE;
         end
@@ -128,7 +128,8 @@ module data_producer_64 #
                     word_count <= 0;
                     chn_grp_count <= 4'b0;
                     //data_valid_r <= 1'b0;
-                    state <= WAIT_SAMPLE;
+                    if (dma_ena)
+                        state <= WAIT_SAMPLE;
                 end
                 HEADER: begin 
                     word_count <= (c2h_data_tready)?  word_count + 1 : 
@@ -179,8 +180,10 @@ module data_producer_64 #
     endcase
   end
 
-   assign c2h_data_tvalid = 1'b1;// user_clk_cnt_r[PKT_WIDTH]; // 2048 on, 2048 off
-   assign c2h_data_tlast  = (user_clk_cnt_r[PKT_WIDTH-1:0] == {PKT_WIDTH{1'b1}});  
+  // assign c2h_data_tvalid = 1'b1;// user_clk_cnt_r[PKT_WIDTH]; // 2048 on, 2048 off
+   assign c2h_data_tvalid = data_valid_r; //1'b1;// user_clk_cnt_r[PKT_WIDTH]; // 2048 on, 2048 off
+   assign c2h_data_tlast  = (word_count == 32'h0000_07FF)? 1'b1: 1'b0; //(user_clk_cnt_r[PKT_WIDTH-1:0] == {PKT_WIDTH{1'b1}});  
+   //assign c2h_data_tlast  = (user_clk_cnt_r[PKT_WIDTH-1:0] == {PKT_WIDTH{1'b1}});  
    assign c2h_data_tdata  = {user_clk_cnt_r, 1'b1,   user_clk_cnt_r, 1'b0}; 
    assign m_axis_tvalid   = m_axis_tvalid_o;
    assign m_axis_tready_i = m_axis_tready;

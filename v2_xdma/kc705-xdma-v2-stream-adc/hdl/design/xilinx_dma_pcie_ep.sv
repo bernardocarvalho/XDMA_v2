@@ -330,7 +330,7 @@ module xilinx_dma_pcie_ep #
     // DMA Data out  
     data_producer_64 data_producer_inst (
       .user_clk(user_clk),                // input wire s_aclk
-      //.user_rstn(user_resetn),          // input wire s_aresetn
+      .user_rstn(user_resetn),          // input wire s_aresetn
       .data_clk(data_clk_i),
       .new_sample(new_sample_i),
       .dma_ena(dma_ena_i),
