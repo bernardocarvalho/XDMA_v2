@@ -49,7 +49,7 @@ unsigned int get_len(struct dta_header * pt)
     return pt->len;
 }
 
-int first = 1;
+int first = 1; //  ignore first packet
 
 int64_t tot_len = 0;
 int64_t old_tot_len = 0;
@@ -132,7 +132,7 @@ int main(int argc, char * argv[])
     clock_gettime(CLOCK_MONOTONIC,&ts);
     tstart=ts.tv_sec+1.0e-9*ts.tv_nsec;
     start_source();
-    for(int i=0; i<2; i++){
+    for(int i=0; i < 4; i++){
         int64_t cur_len=0;
         res=ioctl(fm,IOCTL_XDMA_WZ_GETBUF,(long) &bdesc);
         if(res<0) {
@@ -196,6 +196,7 @@ int main(int argc, char * argv[])
 //    usleep(10);
     //Stop the source
     stop_source();
+    usleep(2000);
     printf("Source stopped\n");
     //Stop the dma acquisition 
     ioctl(fm,IOCTL_XDMA_WZ_STOP, 0L);

@@ -78,23 +78,13 @@ module data_producer_64 #
     (* mark_debug = "true" *) wire c2h_data_tlast;
     (* mark_debug = "true" *) wire c2h_data_tready;
     
-    wire axis_prog_full, m_axis_tvalid_o, m_axis_tready_i ;
+    wire axis_prog_full, fifo_prog_empty, m_axis_tvalid_o, m_axis_tready_i ;
  
     localparam COUNTER_WIDTH = 32;//DATA_WIDTH;
     reg [COUNTER_WIDTH-1:0] user_clk_cnt_r = 0;// {COUNTER_WIDTH{1'b1}};
     localparam PACKET_WORD_SIZE = {32'h0000_07FF}; 
     
-    //reg [7:0]  ff_clk_cnt = 0;
-    //reg [WAIT_WIDTH-1:0] wait_cnt = 0;
-    //reg fifo_wr_en_r; 	
-    
-    //parameter WIDTH = $clog2(DEPTH);
-   /* 
-    localparam IDLE = 3'd0,
-               FILL = 3'd1,
-               WAIT = 3'd2,
-             STATE3 = 3'd3;
-*/
+ 
     localparam  IDLE   = 3'd0,       // wait for fifo space
                 HEADER = 3'd1,
                 WAIT_SAMPLE = 3'd2,  // wait for new batch of sampled channels
@@ -113,8 +103,8 @@ module data_producer_64 #
       end
 
     reg [3:0]  chn_grp_count;         
-    reg [COUNTER_WIDTH-1:0]  word_count;         
-    reg data_valid_r;
+    reg [COUNTER_WIDTH-1:4]  word_count;         
+    reg data_valid_r=1'b0;
 
     always @ (posedge data_clk or negedge user_rstn) begin
         if (!user_rstn) begin
@@ -126,31 +116,31 @@ module data_producer_64 #
             case (state)
                 IDLE: begin
                     word_count <= 0;
-                    chn_grp_count <= 4'b0;
-                    //data_valid_r <= 1'b0;
-                    if (dma_ena)
+                    chn_grp_count <= 4'h0;
+                    if (dma_ena && fifo_prog_empty)
                         state <= WAIT_SAMPLE;
                 end
                 HEADER: begin 
-                    word_count <= (c2h_data_tready)?  word_count + 1 : 
+                    word_count <= (c2h_data_tready)?  word_count + 1'b1 : 
                         word_count;
                 end
                 WAIT_SAMPLE: begin 
-                    chn_grp_count <= 4'b0;
-                    state <= DATA;
+                    chn_grp_count <= 4'h0;
+                    if (new_sample) 
+                        state <= DATA;
                 end
                 DATA: begin 
-                    //data_valid_r <= 1'b1;
                     if (c2h_data_tready) 
-                        if (word_count == 32'h0000_07FF)
+                        if (word_count == 28'h000_07FF)
                               state <= IDLE;
-                    //else if(chn_grp_count == 4'hF)
-                    //    state <= WAIT_SAMPLE;
                         else begin 
-                            chn_grp_count <= chn_grp_count + 1;
-                            word_count <= word_count + 1;
+                            word_count <= word_count + 1'b1;
+                            if(chn_grp_count == 4'hF)
+                                state <= WAIT_SAMPLE;
+                            else  
+                                chn_grp_count <= chn_grp_count + 1'b1;
                         end
-                    end
+                  end
                 default:
                     state <= IDLE;
             endcase
@@ -172,7 +162,6 @@ module data_producer_64 #
 //                c2h_data_tlast  =(word_count == 12'h7FF)? 1'b1: 1'b0;
             end    
         default: begin
-  //          c2h_data_tdata   = 64'd0;
             data_valid_r = 0;
   //          c2h_data_tlast  = 0;
         end
@@ -182,9 +171,9 @@ module data_producer_64 #
 
   // assign c2h_data_tvalid = 1'b1;// user_clk_cnt_r[PKT_WIDTH]; // 2048 on, 2048 off
    assign c2h_data_tvalid = data_valid_r; //1'b1;// user_clk_cnt_r[PKT_WIDTH]; // 2048 on, 2048 off
-   assign c2h_data_tlast  = (word_count == 32'h0000_07FF)? 1'b1: 1'b0; //(user_clk_cnt_r[PKT_WIDTH-1:0] == {PKT_WIDTH{1'b1}});  
+   assign c2h_data_tlast  = (word_count == 28'h000_07FF)? 1'b1: 1'b0; //(user_clk_cnt_r[PKT_WIDTH-1:0] == {PKT_WIDTH{1'b1}});  
    //assign c2h_data_tlast  = (user_clk_cnt_r[PKT_WIDTH-1:0] == {PKT_WIDTH{1'b1}});  
-   assign c2h_data_tdata  = {user_clk_cnt_r, 1'b1,   user_clk_cnt_r, 1'b0}; 
+   assign c2h_data_tdata  = {36'h0_000A_0000, word_count}; //{user_clk_cnt_r, 1'b1,   user_clk_cnt_r, 1'b0}; 
    assign m_axis_tvalid   = m_axis_tvalid_o;
    assign m_axis_tready_i = m_axis_tready;
 
@@ -255,6 +244,7 @@ fifo_axi_stream_0 fifo_data_inst (
   .m_axis_tready(m_axis_tready_i),  // input wire m_axis_tready
   .m_axis_tdata(m_axis_tdata),    // output wire [63 : 0] m_axis_tdata
   .m_axis_tlast(m_axis_tlast),    // output wire m_axis_tlast
+  .axis_prog_empty(fifo_prog_empty),  // output 
   .axis_prog_full(axis_prog_full)  // output wire axis_prog_full
 );
 
