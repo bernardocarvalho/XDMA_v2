@@ -56,7 +56,7 @@ int64_t old_tot_len = 0;
 
 int start_source()
 {
-    usr_regs[0x0F]=0xFFFF; // SHAPI dev_scratch_reg
+    usr_regs[0x0F]=0x0F; // SHAPI dev_scratch_reg
     asm volatile ("" : : : "memory"); // Compier Barrier
     printf("BAR0 Reg 0x0F: 0x%08X\n",usr_regs[0x0F]);
 }
@@ -65,6 +65,15 @@ int stop_source()
 {
     usr_regs[0x0F]=0;
     asm volatile ("" : : : "memory");
+}
+int reset_fifo()
+{
+    usr_regs[0x0F]=0xF0;
+    asm volatile ("" : : : "memory");
+    usleep(500);    
+    usr_regs[0x0F]=0x0;
+    asm volatile ("" : : : "memory");
+    usleep(500);    
 }
 
 
@@ -120,8 +129,9 @@ int main(int argc, char * argv[])
     }
     //Stop the source
     stop_source();
+    reset_fifo();
+    
     //Start the dma acquisition 
-
     res=ioctl(fm,IOCTL_XDMA_WZ_START,0L);
     if(res<0) {
         perror("I can't start the data source");
@@ -132,7 +142,7 @@ int main(int argc, char * argv[])
     clock_gettime(CLOCK_MONOTONIC,&ts);
     tstart=ts.tv_sec+1.0e-9*ts.tv_nsec;
     start_source();
-    for(int i=0; i < 4; i++){
+    for(int i=0; i < 40; i++){
         int64_t cur_len=0;
         res=ioctl(fm,IOCTL_XDMA_WZ_GETBUF,(long) &bdesc);
         if(res<0) {
@@ -196,7 +206,7 @@ int main(int argc, char * argv[])
 //    usleep(10);
     //Stop the source
     stop_source();
-    usleep(2000);
+    //usleep(500);
     printf("Source stopped\n");
     //Stop the dma acquisition 
     ioctl(fm,IOCTL_XDMA_WZ_STOP, 0L);

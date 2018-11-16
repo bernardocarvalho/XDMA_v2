@@ -282,10 +282,10 @@ module xilinx_dma_pcie_ep #
   wire [31:0] control_reg_i;
 
   assign dma_ena_i  = control_reg_i[0]; 
-  assign dma_rstn_i = control_reg_i[3]; 
+  assign dma_rst_i  = control_reg_i[4]; 
 
   assign leds[4]= dma_ena_i; //control_reg_i[0]; 
-  assign leds[5]= dma_rstn_i; //control_reg_i[3]; 
+  assign leds[5]= dma_rst_i; //control_reg_i[3]; 
   assign leds[6]= m_axis_h2c_tready_0;//0control_reg_i[2]; 
   assign leds[7]= mmcm_locked_i; //m_axis_h2c_tvalid_0;//0control_reg_i[3]; 
 
@@ -334,7 +334,7 @@ module xilinx_dma_pcie_ep #
       .data_clk(data_clk_i),
       .new_sample(new_sample_i),
       .dma_ena(dma_ena_i),
-      .dma_rstn(dma_rstn_i),
+      .dma_rst(dma_rst_i),
 
       .m_axis_tdata(s_axis_c2h_tdata_0),    // output wire [63 : 0] m_axis_tdata
       .m_axis_tkeep(s_axis_c2h_tkeep_0),    // output wire [7 : 0] m_axis_tkeep

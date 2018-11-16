@@ -58,7 +58,7 @@ module data_producer_64 #
     //input  adc_word_sync_n,
 
     input  dma_ena,
-    input  dma_rstn,
+    input  dma_rst,
     
     /*
      * AXI STREAM output interface
@@ -235,7 +235,7 @@ fifo_axi_stream_0 fifo_data_inst (
   .rd_rst_busy(),      // output wire rd_rst_busy
   .m_aclk(user_clk),                // input wire m_aclk
   .s_aclk(data_clk),                // input wire s_aclk
-  .s_aresetn(dma_rstn),          // input wire s_aresetn
+  .s_aresetn(!dma_rst),          // input wire s_aresetn
   .s_axis_tvalid(c2h_data_tvalid),  // input wire s_axis_tvalid
   .s_axis_tready(c2h_data_tready),  // output wire s_axis_tready
   .s_axis_tdata(c2h_data_tdata),    // input wire [63 : 0] s_axis_tdata
