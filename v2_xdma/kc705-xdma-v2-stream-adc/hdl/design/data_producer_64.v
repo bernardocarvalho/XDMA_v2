@@ -127,7 +127,7 @@ module data_producer_64 #
                 IDLE: begin
                     word_count <= 0;
                     chn_grp_count <= 4'b0;
-                    data_valid_r <= 1'b0;
+                    //data_valid_r <= 1'b0;
                     state <= WAIT_SAMPLE;
                 end
                 HEADER: begin 
@@ -139,22 +139,45 @@ module data_producer_64 #
                     state <= DATA;
                 end
                 DATA: begin 
-                    data_valid_r <= 1'b1;
+                    //data_valid_r <= 1'b1;
                     if (c2h_data_tready) 
-                         if (word_count == 32'h0000_07FF)
+                        if (word_count == 32'h0000_07FF)
                               state <= IDLE;
                     //else if(chn_grp_count == 4'hF)
                     //    state <= WAIT_SAMPLE;
-                    else begin 
-                        chn_grp_count <= chn_grp_count + 1;
-                        word_count <= word_count + 1;
+                        else begin 
+                            chn_grp_count <= chn_grp_count + 1;
+                            word_count <= word_count + 1;
+                        end
                     end
-                end
                 default:
                     state <= IDLE;
             endcase
         end
     end
+
+    always @* begin
+//    c2h_data_tdata = 64'd0;
+        data_valid_r = 0;
+//    c2h_data_tlast = 0;
+        case (state)
+//        HEADER: begin  
+//                c2h_data_tdata  = (word_count == 12'd0) ? {32'd0, 32'h4010}: HEADER_TWO; //{32'd0, 32'hA5};
+//                c2h_data_tvalid = 1'b1;
+//            end    
+        DATA: begin  
+//                c2h_data_tdata  =  {32'd0, 4'd0, word_count};
+                data_valid_r = 1'b1;
+//                c2h_data_tlast  =(word_count == 12'h7FF)? 1'b1: 1'b0;
+            end    
+        default: begin
+  //          c2h_data_tdata   = 64'd0;
+            data_valid_r = 0;
+  //          c2h_data_tlast  = 0;
+        end
+        
+    endcase
+  end
 
    assign c2h_data_tvalid = 1'b1;// user_clk_cnt_r[PKT_WIDTH]; // 2048 on, 2048 off
    assign c2h_data_tlast  = (user_clk_cnt_r[PKT_WIDTH-1:0] == {PKT_WIDTH{1'b1}});  
