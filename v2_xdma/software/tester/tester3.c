@@ -142,7 +142,7 @@ int main(int argc, char * argv[])
     clock_gettime(CLOCK_MONOTONIC,&ts);
     tstart=ts.tv_sec+1.0e-9*ts.tv_nsec;
     start_source();
-    for(int i=0; i < 40; i++){
+    for(int i=0; i < 4000; i++){
         int64_t cur_len=0;
         res=ioctl(fm,IOCTL_XDMA_WZ_GETBUF,(long) &bdesc);
         if(res<0) {
@@ -198,7 +198,6 @@ int main(int argc, char * argv[])
 
     clock_gettime(CLOCK_MONOTONIC,&ts);
     tcur=ts.tv_sec+1.0e-9*ts.tv_nsec;
-    printf("time: %g s \n", tcur-tstart);
 
     //  clock_gettime(CLOCK_MONOTONIC,&ts);
     //    tcur=ts.tv_sec+1.0e-9*ts.tv_nsec;
@@ -207,9 +206,13 @@ int main(int argc, char * argv[])
     //Stop the source
     stop_source();
     //usleep(500);
-    printf("Source stopped\n");
+    /*printf("Source stopped\n");*/
     //Stop the dma acquisition 
     ioctl(fm,IOCTL_XDMA_WZ_STOP, 0L);
+    /*stop_source();*/
+    usleep(5000);
+    printf("time: %g s \n", tcur-tstart);
+    printf("Source stopped\n");
 	pData = (int *) data_buf;
     for(int i=0; i< 2; i++){
         for(int j=0; j< 4; j++)
