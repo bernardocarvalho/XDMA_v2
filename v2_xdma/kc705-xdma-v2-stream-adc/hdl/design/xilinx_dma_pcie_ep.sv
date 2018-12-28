@@ -326,7 +326,6 @@ module xilinx_dma_pcie_ep #
         .m_axis_tready(s_axis_c2h_tready_0),  // input wire m_axis_tready
         .m_axis_tlast(s_axis_c2h_tlast_0)    // output wire m_axis_tlast
      );
-*/
     // DMA Data out  
     data_producer_64 data_producer_inst (
       .user_clk(user_clk),                // input wire s_aclk
@@ -343,6 +342,23 @@ module xilinx_dma_pcie_ep #
       .m_axis_tlast(s_axis_c2h_tlast_0)    // output wire m_axis_tlast
       //.state_o(state_i)
      );
+*/
+   single_packet_64 single_packet_64_inst (
+      .user_clk(user_clk),                // input wire s_aclk
+      .user_rstn(user_resetn),          // input wire s_aresetn
+      .data_clk(data_clk_i),
+      .new_sample(new_sample_i),
+      .dma_ena(dma_ena_i),
+      .dma_rst(dma_rst_i),
+    
+      .m_axis_tdata(s_axis_c2h_tdata_0),    // output wire [63 : 0] m_axis_tdata
+      .m_axis_tkeep(s_axis_c2h_tkeep_0),    // output wire [7 : 0] m_axis_tkeep
+      .m_axis_tvalid(s_axis_c2h_tvalid_0),  // output wire m_axis_tvalid
+      .m_axis_tready(s_axis_c2h_tready_0),  // input wire m_axis_tready
+      .m_axis_tlast(s_axis_c2h_tlast_0)    // output wire m_axis_tlast
+ );
+
+
     
     assign  m_axis_h2c_tready_0 = 1'b1; // Just flush  "./dma_to_device  " operations
 
