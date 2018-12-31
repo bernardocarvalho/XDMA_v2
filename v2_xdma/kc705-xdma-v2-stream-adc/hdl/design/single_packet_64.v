@@ -115,10 +115,11 @@ module single_packet_64 #
        
             case (state)
                 IDLE: begin
-                    word_count <= 0;
                     chn_grp_count <= 4'h0;
                     if (dma_ena && fifo_prog_empty)
                         state <= WAIT_SAMPLE;
+                    else
+                        word_count <= 0;
                 end
                 WAIT_SAMPLE: begin 
                     chn_grp_count <= 4'h0;
@@ -127,20 +128,23 @@ module single_packet_64 #
                     end
                 end
                 DATA: begin 
-                    if (c2h_data_tready) 
-                        if (word_count == COUNT_WORD_MAX)
-                              state <= END_PACKET;
+                    if (c2h_data_tready) begin 
+                    //    if (word_count == COUNT_WORD_MAX)
+                        word_count <= word_count + 1'b1;
+                        if (c2h_data_tlast)
+                              state <= IDLE;
                         else begin 
-                            word_count <= word_count + 1'b1;
                             if(chn_grp_count == 4'hF)
                                 state <= WAIT_SAMPLE;
                             else  
                                 chn_grp_count <= chn_grp_count + 1'b1;
                         end
+                     end   
                   end
                 END_PACKET: begin
-                    if (!dma_ena)
-                            state <= IDLE;
+                    //if (!dma_ena)
+                    word_count <= 0;
+                    state <= IDLE;
 
                 end
                  
