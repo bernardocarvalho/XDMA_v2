@@ -4,7 +4,7 @@ Engineer: B. Carvalho
  
 Create Date:    Mar 27  WET 2018
 Design Name:    
-Module Name:    data_producer_64 
+Module Name:    single_packet 
 Project Name:   kc705-xdma-axi4-stream-adc
 Target Devices: Kintex xc7kxx
 Tool versions:  Vivado 2017.4
@@ -45,7 +45,7 @@ module single_packet_64 #
 (
     parameter DATA_WIDTH = 64,
     parameter KEEP_WIDTH = (DATA_WIDTH/8),
-    parameter PKT_WIDTH = 10    //8KB (~20us/dma)
+    parameter PKT_WIDTH = 12    //32kB  8KB (~30us/dma)
 )
 (
     input  user_clk,
@@ -74,8 +74,9 @@ module single_packet_64 #
 
 // user data interface to AXI fifo 
     wire [DATA_WIDTH-1:0]	       c2h_data_tdata;
-    (* mark_debug = "true" *) wire c2h_data_tlast;
-    (* mark_debug = "true" *) wire c2h_data_tready;
+    //(* mark_debug = "true" *) 
+    wire c2h_data_tlast;
+    wire c2h_data_tready;
     
     wire axis_prog_full, fifo_prog_empty, m_axis_tvalid_o, m_axis_tready_i ;
  
@@ -116,8 +117,10 @@ module single_packet_64 #
             case (state)
                 IDLE: begin
                     chn_grp_count <= 4'h0;
-                    if (dma_ena && fifo_prog_empty)
-                        state <= WAIT_SAMPLE;
+                    if (dma_ena) begin
+                        if (fifo_prog_empty)
+                            state <= WAIT_SAMPLE;
+                        end    
                     else
                         word_count <= 0;
                 end
@@ -132,7 +135,7 @@ module single_packet_64 #
                     //    if (word_count == COUNT_WORD_MAX)
                         word_count <= word_count + 1'b1;
                         if (c2h_data_tlast)
-                              state <= IDLE;
+                              state <= END_PACKET;
                         else begin 
                             if(chn_grp_count == 4'hF)
                                 state <= WAIT_SAMPLE;
@@ -143,7 +146,7 @@ module single_packet_64 #
                   end
                 END_PACKET: begin
                     //if (!dma_ena)
-                    word_count <= 0;
+//                    word_count <= 0;
                     state <= IDLE;
 
                 end
@@ -181,7 +184,7 @@ module single_packet_64 #
     assign  m_axis_tkeep = {KEEP_WIDTH{1'b1}};
 
 /*
- * 32768 depth 256kB, 2040 full flag
+ * 32768 depth 256kB, 2050 prog empty flag
 */
 fifo_axi_stream_0 fifo_data_inst (
   .wr_rst_busy(),      // output wire wr_rst_busy

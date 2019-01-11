@@ -53,7 +53,7 @@
 `define DEV_FW_MINOR     8'h01 
 `define DEV_FW_MAJOR     8'h00 
 // Linux command: date +%s
-`define DEV_TSTAMP      32'd1540481158  //offset_addr 0x14 //unix timestamp-Tue Mar 13 12:20:52 WET 2018
+`define DEV_TSTAMP      32'd1547222996 //offset_addr 0x14 //unix timestamp-Tue Mar 2019
 
 //`define DEV_NAME         96'h676E696D69544B4F54545349 //495354544F4B54696D696E67  //TimingISTTOK  //XDMAtest  58444D41 74657374
 `define DEV_NAME1         32'h74657374 // 32'h54545349 
